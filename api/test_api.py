@@ -19,3 +19,8 @@ app.add_middleware(
 @app.get("/api/hello")
 async def read_root():
     return {"message": "Hello World"}
+
+@app.get("/api/add")
+async def add_numbers(a: int, b: int):
+    result = a + b
+    return {"result": result}
