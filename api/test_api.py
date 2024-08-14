@@ -28,3 +28,6 @@ async def read_root():
 async def add_numbers(a: int, b: int):
     result = a + b
     return {"result": result}
+
+# to run this api from the main directory:
+# uvicorn api_test:app --reload
