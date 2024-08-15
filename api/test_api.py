@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from fix_dist import fix_dist
+
 app = FastAPI()
 
 # allow CORS for frontend's origin
@@ -20,8 +22,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+APP_DIR = "/app"
+
+# fix dist
+fix_dist(APP_DIR)
+
 # serve static files from the build directory
-app.mount("/app", StaticFiles(directory="../frontend/dist", html=True), name="static")
+app.mount(APP_DIR, StaticFiles(directory="../frontend/dist", html=True), name="static")
 
 
 @app.get("/api/hello")
