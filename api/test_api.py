@@ -6,7 +6,10 @@ app = FastAPI()
 
 # allow CORS for frontend's origin
 origins = [
+    # dev
     "http://localhost:5173",
+    # build
+    "http://localhost:8000",
 ]
 
 app.add_middleware(
@@ -18,7 +21,7 @@ app.add_middleware(
 )
 
 # serve static files from the build directory
-# app.mount("/", StaticFiles(directory="./frontend/dist", html=True), name="static")
+app.mount("/app", StaticFiles(directory="../frontend/dist", html=True), name="static")
 
 
 @app.get("/api/hello")
@@ -33,4 +36,4 @@ async def add_numbers(a: int, b: int):
 
 
 # to run this api from the main directory:
-# uvicorn api_test:app --reload
+# uvicorn test_api:app --reload
