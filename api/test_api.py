@@ -18,16 +18,19 @@ app.add_middleware(
 )
 
 # serve static files from the build directory
-app.mount("/", StaticFiles(directory="./frontend/dist", html=True), name="static")
+# app.mount("/", StaticFiles(directory="./frontend/dist", html=True), name="static")
+
 
 @app.get("/api/hello")
 async def read_root():
     return {"message": "Hello from FastAPI"}
 
+
 @app.get("/api/add")
 async def add_numbers(a: int, b: int):
     result = a + b
     return {"result": result}
+
 
 # to run this api from the main directory:
 # uvicorn api_test:app --reload
