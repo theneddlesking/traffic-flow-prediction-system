@@ -14,3 +14,35 @@ The solution utilises historical traffic data for traffic flow prediction. The s
 
 This will start build the frontend and start up the backend.
 If you make changes you can simply rerun the script.
+
+The app will be running at ```localhost:8000/app```
+
+### Frontend Dev
+
+If you are only working on the frontend, first init the app like above.
+
+But then you can run the dev build:
+
+First cd into the frontend directory
+
+```cd frontend```
+
+And then start up the dev server
+
+```npm run dev```
+
+The development app will be running at ```localhost:5173```
+
+### Backend Dev
+
+If you are only working on the frontend, first init the app like above.
+
+But then you can run the dev build:
+
+First cd into the api directory
+
+```cd api```
+
+And then start up the dev server
+
+```uvicorn api:app --reload```
