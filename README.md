@@ -8,24 +8,9 @@ The solution utilises historical traffic data for traffic flow prediction. The s
 
 ## Installation
 
-### Python (API / Model)
+### Run init.sh
 
-To install dependencies
-```pip install -r -requirements```
+```./init.sh```
 
-To run the api use
-```uvicorn test_api:app --reload```
-
-### Node (Frontend)
-
-Run with /frontend as the current working directory.
-```cd frontend```
-
-To install dependencies
-```npm install```
-
-To run in development mode use
-```npm run dev```
-
-To create a new build use
-```npm run build```
+This will start build the frontend and start up the backend.
+If you make changes you can simply rerun the script.
