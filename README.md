@@ -35,7 +35,7 @@ The development app will be running at ```localhost:5173```
 
 ### Backend Dev
 
-If you are only working on the frontend, first init the app like above.
+If you are only working on the backend and API, first init the app like above.
 
 But then you can run the dev build:
 
