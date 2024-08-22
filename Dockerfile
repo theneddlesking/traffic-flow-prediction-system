@@ -14,8 +14,14 @@ WORKDIR /app
 # copy local code to the container
 COPY . /app
 
+# expose port
+EXPOSE 8000
+
 # install Python dependencies
 RUN pip install -r local_requirements.txt
 
+# install uvicorn 
+RUN pip install uvicorn
+
 # run the main.py script
-CMD ["python", "main.py"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

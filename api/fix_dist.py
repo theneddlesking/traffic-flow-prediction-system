@@ -5,7 +5,7 @@
 
 def fix_dist(app_dir="/app"):
     """Fixes issue with dist build where the frontend files are not found due to subdirectory path issues."""
-    with open("../frontend/dist/index.html", "r", encoding="utf-8") as file:
+    with open("./frontend/dist/index.html", "r", encoding="utf-8") as file:
 
         link_sources = ["href=", "src="]
 
@@ -35,7 +35,7 @@ def fix_dist(app_dir="/app"):
             new_lines.append(new_line)
 
     # write new file
-    with open("../frontend/dist/index.html", "w", encoding="utf-8") as file:
+    with open("./frontend/dist/index.html", "w", encoding="utf-8") as file:
         file.writelines(new_lines)
 
 
