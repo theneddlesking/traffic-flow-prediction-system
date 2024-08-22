@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from fix_dist import fix_dist
+from api.fix_dist import fix_dist
+from main import main
 
 app = FastAPI()
 
@@ -28,7 +29,7 @@ APP_DIR = "/app"
 fix_dist(APP_DIR)
 
 # serve static files from the build directory
-app.mount(APP_DIR, StaticFiles(directory="../frontend/dist", html=True), name="static")
+app.mount(APP_DIR, StaticFiles(directory="./frontend/dist", html=True), name="static")
 
 
 @app.get("/api/hello")
@@ -40,6 +41,13 @@ async def read_root():
 async def add_numbers(a: int, b: int):
     result = a + b
     return {"result": result}
+
+
+# TODO this for testing only
+@app.get("/api/main")
+async def main_api():
+    print("Hello from API")
+    return main()
 
 
 # to run this api from the main directory:
