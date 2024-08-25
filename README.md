@@ -46,21 +46,3 @@ First cd into the api directory
 And then start up the dev server
 
 ```uvicorn api:app --reload```
-
-### Run with Docker (for Apple Silicon Mac)
-
-This project uses tensorflow version 1.5.0 which is not supported on Apple Silicon.
-
-So we need to use Docker to host emulate a Linux environment.
-
-```cd colab```
-
-#### Build the container
-
-```docker build --platform linux/amd64 -t tf_1.5_image .```
-
-### Run the container
-
-```docker run --platform linux/amd64 -it tf_1.5_image```
-
-Runs the main.py automatically. You should not use train.py locally.
