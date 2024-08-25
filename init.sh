@@ -25,7 +25,7 @@ fi
 if [ "$OS" = "Darwin" ]; then
     # install dependencies
     pip install -r mac_requirements.txt
-else [ "$OS" = "Linux" ]; then
+else
     # install dependencies
     pip install -r requirements.txt
 fi
