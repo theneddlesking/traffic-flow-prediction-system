@@ -1,8 +1,8 @@
 """
 Defination of NN model
 """
-from keras.layers import Dense, Dropout, Activation
-from keras.layers.recurrent import LSTM, GRU
+# keras.layers.recurrent cause ModuleNotFoundError
+from keras.layers import Dense, Dropout, Activation, LSTM, GRU
 from keras.models import Sequential
 
 

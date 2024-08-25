@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 from data.data import process_data
 from model import model
-from keras.models import Model
+import keras
+# as of keras 3.0, the practice has changed to directly accessing models, layers, etc. in code e.g. keras.models.load_model
 from keras.callbacks import EarlyStopping
 warnings.filterwarnings("ignore")
 
@@ -33,12 +34,14 @@ def train_model(model, X_train, y_train, name, config):
         epochs=config["epochs"],
         validation_split=0.05)
 
-    model.save('model/' + name + '.h5')
+    # https://keras.io/guides/migrating_to_keras_3/ - Keras 3 only supports V3 `.keras` files and legacy H5 format files (`.h5` extension)
+    # updated to just use .keras extension instead of .h5
+    model.save('model/' + name + '.keras')
     df = pd.DataFrame.from_dict(hist.history)
     df.to_csv('model/' + name + ' loss.csv', encoding='utf-8', index=False)
 
 
-def train_seas(models, X_train, y_train, name, config):
+def train_saes(models, X_train, y_train, name, config):
     """train
     train the SAEs model.
 
@@ -56,8 +59,11 @@ def train_seas(models, X_train, y_train, name, config):
     for i in range(len(models) - 1):
         if i > 0:
             p = models[i - 1]
-            hidden_layer_model = Model(input=p.input,
-                                       output=p.get_layer('hidden').output)
+            # see import statements for more info
+            # p.input -> p.inputs
+            # new update of tensorflow doesn't require input=/output=
+            hidden_layer_model = keras.Model(p.inputs,
+                                       p.get_layer('hidden').output)
             temp = hidden_layer_model.predict(temp)
 
         m = models[i]
@@ -86,7 +92,8 @@ def main(argv):
     args = parser.parse_args()
 
     lag = 12
-    config = {"batch": 256, "epochs": 600}
+    # epochs reduced from 600 -> 2 to speed up training
+    config = {"batch": 256, "epochs": 2}
     file1 = 'data/train.csv'
     file2 = 'data/test.csv'
     X_train, y_train, _, _, _ = process_data(file1, file2, lag)
@@ -102,7 +109,7 @@ def main(argv):
     if args.model == 'saes':
         X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1]))
         m = model.get_saes([12, 400, 400, 400, 1])
-        train_seas(m, X_train, y_train, args.model, config)
+        train_saes(m, X_train, y_train, args.model, config)
 
 
 if __name__ == '__main__':

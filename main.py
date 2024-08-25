@@ -6,8 +6,8 @@ import warnings
 import numpy as np
 import pandas as pd
 from data.data import process_data
-from keras.models import load_model
-from keras.utils.vis_utils import plot_model
+import keras
+# as of keras 3.0, the practice has changed to directly accessing models, layers, etc. in code e.g. keras.models.load_model
 import sklearn.metrics as metrics
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -94,9 +94,10 @@ def plot_results(y_true, y_preds, names):
 
 
 def main():
-    lstm = load_model('model/lstm.h5')
-    gru = load_model('model/gru.h5')
-    saes = load_model('model/saes.h5')
+    # see import statements for more info
+    lstm = keras.models.load_model('model/lstm.keras')
+    gru = keras.models.load_model('model/gru.keras')
+    saes = keras.models.load_model('model/saes.keras')
     models = [lstm, gru, saes]
     names = ['LSTM', 'GRU', 'SAEs']
 
@@ -112,8 +113,9 @@ def main():
             X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1]))
         else:
             X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
-        file = 'images/' + name + '.png'
-        plot_model(model, to_file=file, show_shapes=True)
+        # "this is a bug of Keras" - https://github.com/XifengGuo/CapsNet-Keras/issues/7
+        # file = 'images/' + name + '.png'
+        # keras.utils.plot_model(model, to_file=file, show_shapes=True)
         predicted = model.predict(X_test)
         predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
         y_preds.append(predicted[:288])

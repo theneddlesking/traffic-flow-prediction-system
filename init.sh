@@ -20,8 +20,15 @@ else
     source $VENV_DIR/Scripts/activate
 fi
 
-# install dependencies
-pip install -r requirements.txt
+
+# activate the virtual environment based on the OS
+if [ "$OS" = "Darwin" ]; then
+    # install dependencies
+    pip install -r mac_requirements.txt
+else [ "$OS" = "Linux" ]; then
+    # install dependencies
+    pip install -r requirements.txt
+fi
 
 # even though uvicorn is installed, it is not available in the PATH
 # so we need to install it manually
