@@ -37,12 +37,6 @@ The development app will be running at ```localhost:5173```
 
 If you are only working on the backend and API, first init the app like above.
 
-But then you can run the dev build:
+From the root folder start up the dev server
 
-First cd into the api directory
-
-```cd api```
-
-And then start up the dev server
-
-```uvicorn api:app --reload```
+```uvicorn app:app --reload```
