@@ -111,6 +111,18 @@ def main(argv):
 
     parser.add_argument("--root", default=".", help="Root file path.")
 
+    # add arg for epochs
+
+    parser.add_argument("--epochs", default=600, help="Number of epochs to train.")
+
+    # force epochs not on gpu
+
+    parser.add_argument(
+        "--force",
+        default=False,
+        help="Force number of epochs to a value above 10 if not on GPU.",
+    )
+
     args = parser.parse_args()
 
     devices = tf.config.list_physical_devices("GPU")
@@ -131,8 +143,19 @@ def main(argv):
         print("Not running on Google Colab")
 
     lag = 12
-    # epochs reduced from 600 -> 2 to speed up training
-    config = {"batch": 256, "epochs": 2}
+
+    # if not on gpu then reduce the number of epochs
+
+    if not devices and args.epochs > 10 and not args.force:
+        # throw warning if not on gpu
+
+        print(
+            "Warning: Not running on GPU. Reducing number of epochs to 10. If you want to train for more epochs anyways, use --force True."
+        )
+
+        args.epochs = 10
+
+    config = {"batch": 256, "epochs": args.epochs}
 
     file1 = args.root + "/data/train.csv"
     file2 = args.root + "/data/test.csv"
