@@ -47,7 +47,7 @@ def train_model(model, X_train, y_train, name, config, root):
     df.to_csv(root + "/model/" + name + " loss.csv", encoding="utf-8", index=False)
 
 
-def train_saes(models, X_train, y_train, name, config):
+def train_saes(models, X_train, y_train, name, config, root):
     """train
     train the SAEs model.
 
@@ -89,7 +89,7 @@ def train_saes(models, X_train, y_train, name, config):
         weights = models[i].get_layer("hidden").get_weights()
         saes.get_layer("hidden%d" % (i + 1)).set_weights(weights)
 
-    train_model(saes, X_train, y_train, name, config)
+    train_model(saes, X_train, y_train, name, config, root)
 
 
 def is_colab():
