@@ -45,9 +45,8 @@ npm install
 # build the app
 npm run build
 
-# api
+# go back to the root directory
 cd ..
-cd api
 
 # run app with uvicorn
-uvicorn api:app --reload
+uvicorn app:app --reload
