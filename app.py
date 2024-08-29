@@ -4,6 +4,8 @@ from fastapi.staticfiles import StaticFiles
 
 from api.fix_dist import fix_dist
 from main import main
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 app = FastAPI()
 
