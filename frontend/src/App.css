@@ -58,3 +58,13 @@ input[type="number"]:focus {
   outline: none;
 }
 
+.map-container {
+  width: 75vw;
+  height: 75vh;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+

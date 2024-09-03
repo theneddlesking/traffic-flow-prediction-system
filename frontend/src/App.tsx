@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios';
 import './App.css'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import 'leaflet/dist/leaflet.css';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -35,35 +37,20 @@ function App() {
 
   return (
     <>
-      <div className="card">
-        <h1>Traffic Flow Prediction System - GUI</h1>
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>Response from <a>http://127.0.0.1:8000/api/hello</a></p>
-        <h3>{message}</h3>
+      <h1>Test Leaflet Map</h1>
+      <div className='map-container'>
+        <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          <Marker position={[-37.8095, 145.0351]}>
+            <Popup>
+              A pretty CSS3 popup. <br /> Easily customizable.
+            </Popup>
+          </Marker>
+        </MapContainer>
       </div>
-      <div>
-      <p>Use endpoint <a>http://127.0.0.1:8000/api/add</a> to conduct basic arithmetic</p>
-      <input
-        type="number"
-        value={number1}
-        onChange={(e) => setNumber1(e.target.value)}
-        placeholder="Enter first number"
-      />
-      <input
-        type="number"
-        value={number2}
-        onChange={(e) => setNumber2(e.target.value)}
-        placeholder="Enter second number"
-      />
-      <button onClick={handleAddition}>Add</button>
-      {result !== null && (
-        <div>
-          <h2>Result: {result}</h2>
-        </div>
-      )}
-    </div>
     </>
   )
 }
