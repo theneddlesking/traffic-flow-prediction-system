@@ -127,3 +127,6 @@ ENV/
 
 # ignore zip
 *.zip
+
+# ignore vic data
+vic
