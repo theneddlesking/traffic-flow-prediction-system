@@ -17,6 +17,25 @@ If you make changes you can simply rerun the script.
 
 The app will be running at ```localhost:8000/app```
 
+### Training
+
+To train a model use:
+
+```python train.py --location <location_name> --model <model_name>```
+
+However, you need to the data files to already exist for that location.
+To add a location use:
+
+```python vic_convert.py --location <location_name>```
+
+### Run Model
+
+To see the results use:
+
+```python main.py --location <location_name>```
+
+This will create a graph visualisation in the image directory called results.png.
+
 ### Frontend Dev
 
 If you are only working on the frontend, first init the app like above.
