@@ -88,7 +88,6 @@ def train_saes(models, X_train, y_train, name, config, root):
     for i in range(len(models) - 1):
         weights = models[i].get_layer("hidden").get_weights()
         saes.get_layer("hidden%d" % (i + 1)).set_weights(weights)
-
     train_model(saes, X_train, y_train, name, config, root)
 
 
