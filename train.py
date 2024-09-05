@@ -153,12 +153,12 @@ def main(argv):
             "Warning: Not running on GPU. Reducing number of epochs to 10. If you want to train for more epochs anyways, use --force True."
         )
 
-        args.epochs = 10
+        args.epochs = 3
 
     config = {"batch": 256, "epochs": args.epochs}
 
-    file1 = args.root + "/data/train.csv"
-    file2 = args.root + "/data/test.csv"
+    file1 = args.root + "/data/vic/train.csv"
+    file2 = args.root + "/data/vic/test.csv"
     x_train, y_train, _, _, _ = process_data(file1, file2, lag)
 
     if args.model == "lstm":
