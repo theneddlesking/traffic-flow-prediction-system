@@ -23,8 +23,6 @@ df = pd.read_csv(CSV, encoding="utf-8")
 
 cols = "5 Minutes,Lane 1 Flow (Veh/5 Minutes),# Lane Points,% Observed".split(",")
 
-output_df = []
-
 
 def convert_15_minute_index_to_str(i):
     hours = i // 4
@@ -37,8 +35,15 @@ def convert_15_minute_index_to_str(i):
     return f"{hours_str}:{minutes_str}"
 
 
+# select only certain location
+LOCATION = "WARRIGAL_RD N of HIGH STREET_RD"
+
+df = df[df["LOCATION"] == LOCATION]
+
 # date shoudln't matter
-DATE = "04/03/2016"
+
+
+output_df = []
 
 # iter each row
 for index, row in df.iterrows():
@@ -46,12 +51,14 @@ for index, row in df.iterrows():
     # get flow
     flow = row["V00":"V95"]
 
+    date = row["DATE"]
+
     # get 15 minutes
     for i in range(0, 96, 1):
 
         output_df.append(
             {
-                "15 Minutes": DATE + " " + convert_15_minute_index_to_str(i),
+                "15 Minutes": date + " " + convert_15_minute_index_to_str(i),
                 "Lane 1 Flow (Veh/5 Minutes)": flow[i],
                 "# Lane Points": 1,
                 "% Observed": 100,

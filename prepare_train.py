@@ -1,3 +1,4 @@
+import math
 import pandas as pd
 
 
@@ -5,17 +6,24 @@ CSV = "./data/vic/ScatsOctober2006_converted.csv"
 
 df = pd.read_csv(CSV, encoding="utf-8")
 
-# shuffle it
 
-df = df.sample(frac=1).reset_index(drop=True)
+# 70% to 30% ratio
 
-# take 70% as train
-train_df = df[: int(len(df) * 0.7)]
+DAYS_IN_OCTOBER = 31
 
-# take 30% as test
-test_section = int(len(df) * 0.7)
-test_df = df[test_section:]
+NUMBER_OF_DAYS = math.ceil(DAYS_IN_OCTOBER * 0.7)
+
+NUMBER_OF_15_MINUTES_PER_DAY = 96
+
+NUMBER_OF_PERIODS = NUMBER_OF_DAYS * NUMBER_OF_15_MINUTES_PER_DAY
+
+train_df = df.iloc[:NUMBER_OF_PERIODS]
+
+# rest use as test data
+test_df = df.iloc[NUMBER_OF_PERIODS:]
 
 # save to csv
+
 train_df.to_csv("./data/vic/train.csv", index=False)
+
 test_df.to_csv("./data/vic/test.csv", index=False)

@@ -153,7 +153,7 @@ def main(argv):
             "Warning: Not running on GPU. Reducing number of epochs to 10. If you want to train for more epochs anyways, use --force True."
         )
 
-        args.epochs = 3
+        args.epochs = 10
 
     config = {"batch": 256, "epochs": args.epochs}
 
