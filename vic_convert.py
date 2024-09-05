@@ -14,6 +14,7 @@
 
 import math
 import pandas as pd
+import argparse
 
 
 DAYS_IN_OCTOBER = 31
@@ -24,8 +25,6 @@ NUMBER_OF_15_MINUTES_PER_DAY = 96
 
 NUMBER_OF_PERIODS = NUMBER_OF_DAYS * NUMBER_OF_15_MINUTES_PER_DAY
 
-import argparse
-
 
 def create_test_train_from_location(location):
 
@@ -34,8 +33,6 @@ def create_test_train_from_location(location):
     df = pd.read_csv(csv, encoding="utf-8")
 
     # output df
-
-    cols = "5 Minutes,Lane 1 Flow (Veh/5 Minutes),# Lane Points,% Observed".split(",")
 
     def convert_15_minute_index_to_str(i):
         hours = i // 4
