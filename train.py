@@ -115,6 +115,12 @@ def main(argv):
 
     parser.add_argument("--epochs", default=600, help="Number of epochs to train.")
 
+    # add arg for location
+    parser.add_argument(
+        "--location",
+        help="Location to extract data from.",
+    )
+
     # force epochs not on gpu
 
     parser.add_argument(
@@ -124,6 +130,12 @@ def main(argv):
     )
 
     args = parser.parse_args()
+
+    # check if location is provided
+    location = args.location
+
+    if not location:
+        raise ValueError("Location is required")
 
     devices = tf.config.list_physical_devices("GPU")
 
@@ -157,8 +169,22 @@ def main(argv):
 
     config = {"batch": 256, "epochs": args.epochs}
 
-    file1 = args.root + "/data/vic/train.csv"
-    file2 = args.root + "/data/vic/test.csv"
+    file1 = args.root + "/data/vic_test_train/train_" + location + ".csv"
+    file2 = args.root + "/data/vic_test_train/test_" + location + ".csv"
+
+    # check if files exist
+
+    try:
+        with open(file1, encoding="utf-8") as f:
+            pass
+
+        with open(file2, encoding="utf-8") as f:
+            pass
+
+    except FileNotFoundError:
+        print("File not found. Check that you have the correct location name.")
+        return
+
     x_train, y_train, _, _, _ = process_data(file1, file2, lag)
 
     if args.model == "lstm":

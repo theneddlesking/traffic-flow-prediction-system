@@ -12,62 +12,101 @@
 # output
 # site number, date time every 5 minutes, flow
 
+import math
 import pandas as pd
 
 
-CSV = "./data/vic/ScatsOctober2006.csv"
+DAYS_IN_OCTOBER = 31
 
-df = pd.read_csv(CSV, encoding="utf-8")
+NUMBER_OF_DAYS = math.ceil(DAYS_IN_OCTOBER * 0.7)
 
-# output df
+NUMBER_OF_15_MINUTES_PER_DAY = 96
 
-cols = "5 Minutes,Lane 1 Flow (Veh/5 Minutes),# Lane Points,% Observed".split(",")
+NUMBER_OF_PERIODS = NUMBER_OF_DAYS * NUMBER_OF_15_MINUTES_PER_DAY
 
-
-def convert_15_minute_index_to_str(i):
-    hours = i // 4
-    minutes = (i % 4) * 15
-
-    # pad 0s to make it 2 digits
-    hours_str = str(hours).zfill(2)
-    minutes_str = str(minutes).zfill(2)
-
-    return f"{hours_str}:{minutes_str}"
+import argparse
 
 
-# select only certain location
-LOCATION = "WARRIGAL_RD N of HIGH STREET_RD"
+def create_test_train_from_location(location):
 
-df = df[df["LOCATION"] == LOCATION]
+    csv = "./data/vic/ScatsOctober2006.csv"
 
-# date shoudln't matter
+    df = pd.read_csv(csv, encoding="utf-8")
+
+    # output df
+
+    cols = "5 Minutes,Lane 1 Flow (Veh/5 Minutes),# Lane Points,% Observed".split(",")
+
+    def convert_15_minute_index_to_str(i):
+        hours = i // 4
+        minutes = (i % 4) * 15
+
+        # pad 0s to make it 2 digits
+        hours_str = str(hours).zfill(2)
+        minutes_str = str(minutes).zfill(2)
+
+        return f"{hours_str}:{minutes_str}"
+
+    # select only certain location
+    df = df[df["LOCATION"] == location]
+
+    output_df = []
+
+    # iter each row
+    for index, row in df.iterrows():
+
+        # get flow
+        flow = row["V00":"V95"]
+
+        date = row["DATE"]
+
+        # get 15 minutes
+        for i in range(0, 96, 1):
+
+            output_df.append(
+                {
+                    "15 Minutes": date + " " + convert_15_minute_index_to_str(i),
+                    "Lane 1 Flow (Veh/5 Minutes)": flow[i],
+                    "# Lane Points": 1,
+                    "% Observed": 100,
+                },
+            )
+
+    # convert to df
+
+    output_df = pd.DataFrame(output_df)
+
+    # 70% to 30% ratio
+    train_df = output_df.iloc[:NUMBER_OF_PERIODS]
+
+    # rest use as test data
+    test_df = output_df.iloc[NUMBER_OF_PERIODS:]
+
+    # save to csv based on location name
+    train_df.to_csv(
+        "./data/vic_test_train/train_" + location + ".csv",
+        encoding="utf-8",
+        index=False,
+    )
+
+    test_df.to_csv(
+        "./data/vic_test_train/test_" + location + ".csv", encoding="utf-8", index=False
+    )
 
 
-output_df = []
+if __name__ == "__main__":
 
-# iter each row
-for index, row in df.iterrows():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--location",
+        type=str,
+        help="Location to extract data from",
+    )
 
-    # get flow
-    flow = row["V00":"V95"]
+    args = parser.parse_args()
 
-    date = row["DATE"]
+    # check if location is provided
+    if not args.location:
+        raise ValueError("Location is required")
 
-    # get 15 minutes
-    for i in range(0, 96, 1):
-
-        output_df.append(
-            {
-                "15 Minutes": date + " " + convert_15_minute_index_to_str(i),
-                "Lane 1 Flow (Veh/5 Minutes)": flow[i],
-                "# Lane Points": 1,
-                "% Observed": 100,
-            },
-        )
-
-# convert to df
-
-output_df = pd.DataFrame(output_df)
-
-# save to csv
-output_df.to_csv("./data/vic/ScatsOctober2006_converted.csv", index=False)
+    create_test_train_from_location(args.location)

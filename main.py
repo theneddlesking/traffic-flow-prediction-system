@@ -14,6 +14,8 @@ import sklearn.metrics as metrics
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+import argparse
+
 warnings.filterwarnings("ignore")
 
 
@@ -93,7 +95,8 @@ def plot_results(y_true, y_preds, names):
     ax.xaxis.set_major_formatter(date_format)
     fig.autofmt_xdate()
 
-    plt.show()
+    # save plot
+    plt.savefig("images/results.png")
 
 
 def main():
@@ -104,9 +107,25 @@ def main():
     models = [lstm, gru, saes]
     names = ["LSTM", "GRU", "SAEs"]
 
+    parser = argparse.ArgumentParser()
+
+    # add arg for location
+    parser.add_argument(
+        "--location",
+        help="Location to extract data from.",
+    )
+
+    args = parser.parse_args()
+
+    location = args.location
+
+    if location is None:
+        raise ValueError("Location is required")
+
     lag = 12
-    file1 = "data/vic/train.csv"
-    file2 = "data/vic/test.csv"
+    file1 = "data/vic_test_train/train_" + location + ".csv"
+    file2 = "data/vic_test_train/test_" + location + ".csv"
+
     _, _, X_test, y_test, scaler = process_data(file1, file2, lag)
     y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).reshape(1, -1)[0]
 
