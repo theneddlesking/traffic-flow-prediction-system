@@ -1,16 +1,21 @@
 """
 Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU).
 """
+
 import math
 import warnings
 import numpy as np
 import pandas as pd
 from data.data import process_data
 import keras
+
 # as of keras 3.0, the practice has changed to directly accessing models, layers, etc. in code e.g. keras.models.load_model
 import sklearn.metrics as metrics
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+
+import argparse
+
 warnings.filterwarnings("ignore")
 
 
@@ -54,12 +59,12 @@ def eva_regress(y_true, y_pred):
     mae = metrics.mean_absolute_error(y_true, y_pred)
     mse = metrics.mean_squared_error(y_true, y_pred)
     r2 = metrics.r2_score(y_true, y_pred)
-    print('explained_variance_score:%f' % vs)
-    print('mape:%f%%' % mape)
-    print('mae:%f' % mae)
-    print('mse:%f' % mse)
-    print('rmse:%f' % math.sqrt(mse))
-    print('r2:%f' % r2)
+    print("explained_variance_score:%f" % vs)
+    print("mape:%f%%" % mape)
+    print("mae:%f" % mae)
+    print("mse:%f" % mse)
+    print("rmse:%f" % math.sqrt(mse))
+    print("r2:%f" % r2)
 
 
 def plot_results(y_true, y_preds, names):
@@ -71,45 +76,62 @@ def plot_results(y_true, y_preds, names):
         y_pred: List/ndarray, predicted data.
         names: List, Method names.
     """
-    d = '2016-3-4 00:00'
-    x = pd.date_range(d, periods=288, freq='5min')
+    d = "2016-3-4 00:00"
+    x = pd.date_range(d, periods=288, freq="5min")
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    ax.plot(x, y_true, label='True Data')
+    ax.plot(x, y_true, label="True Data")
     for name, y_pred in zip(names, y_preds):
         ax.plot(x, y_pred, label=name)
 
     plt.legend()
     plt.grid(True)
-    plt.xlabel('Time of Day')
-    plt.ylabel('Flow')
+    plt.xlabel("Time of Day")
+    plt.ylabel("Flow")
 
     date_format = mpl.dates.DateFormatter("%H:%M")
     ax.xaxis.set_major_formatter(date_format)
     fig.autofmt_xdate()
 
-    plt.show()
+    # save plot
+    plt.savefig("images/results.png")
 
 
 def main():
     # see import statements for more info
-    lstm = keras.models.load_model('model/lstm.keras')
-    gru = keras.models.load_model('model/gru.keras')
-    saes = keras.models.load_model('model/saes.keras')
+    lstm = keras.models.load_model("model/lstm.keras")
+    gru = keras.models.load_model("model/gru.keras")
+    saes = keras.models.load_model("model/saes.keras")
     models = [lstm, gru, saes]
-    names = ['LSTM', 'GRU', 'SAEs']
+    names = ["LSTM", "GRU", "SAEs"]
+
+    parser = argparse.ArgumentParser()
+
+    # add arg for location
+    parser.add_argument(
+        "--location",
+        help="Location to extract data from.",
+    )
+
+    args = parser.parse_args()
+
+    location = args.location
+
+    if location is None:
+        raise ValueError("Location is required")
 
     lag = 12
-    file1 = 'data/train.csv'
-    file2 = 'data/test.csv'
+    file1 = "data/vic_test_train/train_" + location + ".csv"
+    file2 = "data/vic_test_train/test_" + location + ".csv"
+
     _, _, X_test, y_test, scaler = process_data(file1, file2, lag)
     y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).reshape(1, -1)[0]
 
     y_preds = []
     for name, model in zip(names, models):
-        if name == 'SAEs':
+        if name == "SAEs":
             X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1]))
         else:
             X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
@@ -122,8 +144,8 @@ def main():
         print(name)
         eva_regress(y_test, predicted)
 
-    plot_results(y_test[: 288], y_preds, names)
+    plot_results(y_test[:288], y_preds, names)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
