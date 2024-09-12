@@ -4,6 +4,8 @@ import sqlite3
 from fastapi import APIRouter
 import numpy as np
 
+from build_train_run import build_train_run
+
 router = APIRouter()
 
 
@@ -11,20 +13,72 @@ router = APIRouter()
 @router.get("/flow")
 async def get_flow(location_id: int, time: str):
 
-    # check against cache
+    # get location data from db
+    conn = sqlite3.connect("./db/site.db")
 
-    # do we already have the model loaded for this location
+    cursor = conn.cursor()
 
-    # if not load and train the model and cache it
+    # sql injection??
+    cursor.execute(
+        "SELECT id, site_number, name, lat, long FROM locations WHERE id = ?",
+        (location_id,),
+    )
 
-    # do we have a cached prediction
+    location = cursor.fetchone()
 
-    # otherwise predict and cache
+    if location is None:
+        return {"error": "location not found"}
 
-    # random number for now
-    random_number = np.random.randint(0, 100)
+    # convert to dict
+    location = {
+        "location_id": location[0],
+        "site_number": location[1],
+        "name": location[2],
+        "lat": location[3],
+        "long": location[4],
+    }
 
-    return {"flow": random_number}
+    # check if we have already made predictions for this location
+
+    cursor.execute(
+        "SELECT flow FROM predictions WHERE location_id = ? AND time = ?",
+        (location_id, time),
+    )
+
+    prediction = cursor.fetchone()
+
+    if prediction is not None:
+        # close
+        conn.commit()
+        conn.close()
+
+        return {"flow": prediction[0]}
+
+    # else we need to train and run the model
+    df = build_train_run(location["name"])
+
+    # save to db
+    for index, row in df.iterrows():
+        cursor.execute(
+            "INSERT INTO predictions (location_id, time, flow) VALUES (?, ?, ?)",
+            (location_id, row["time"], row["gru"]),
+        )
+
+    cursor.execute(
+        "SELECT flow FROM predictions WHERE location_id = ? AND time = ?",
+        (location_id, time),
+    )
+
+    prediction = cursor.fetchone()
+
+    # close
+    conn.commit()
+    conn.close()
+
+    if prediction is not None:
+        return {"flow": prediction[0]}
+
+    return {"error": "flow not found"}
 
 
 # get all locations
@@ -37,7 +91,7 @@ async def get_locations():
 
     cursor = conn.cursor()
 
-    cursor.execute("SELECT site_number, name, lat, long FROM locations")
+    cursor.execute("SELECT id, site_number, name, lat, long FROM locations")
 
     locations = cursor.fetchall()
 
@@ -46,10 +100,11 @@ async def get_locations():
     # convert locations to dict
     locations = [
         {
-            "site_number": location[0],
-            "name": location[1],
-            "lat": location[2],
-            "long": location[3],
+            "location_id": location[0],
+            "site_number": location[1],
+            "name": location[2],
+            "lat": location[3],
+            "long": location[4],
         }
         for location in locations
     ]

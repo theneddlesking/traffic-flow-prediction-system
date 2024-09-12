@@ -18,6 +18,17 @@ import argparse
 
 warnings.filterwarnings("ignore")
 
+HOURS_IN_DAY = 24
+
+MINUTES_IN_HOUR = 60
+
+NUMBER_OF_5_MINUTE_INTERVALS_IN_HOUR = MINUTES_IN_HOUR // 5
+
+# 288 5-minute increments in a day
+NUMBER_OF_5_MINUTE_INTERVALS_IN_DAY = (
+    HOURS_IN_DAY * NUMBER_OF_5_MINUTE_INTERVALS_IN_HOUR
+)
+
 
 def MAPE(y_true, y_pred):
     """Mean Absolute Percentage Error
@@ -67,7 +78,7 @@ def eva_regress(y_true, y_pred):
     print("r2:%f" % r2)
 
 
-def plot_results(y_true, y_preds, names):
+def plot_results(y_true, y_preds, names, location):
     """Plot
     Plot the true data and predicted data.
 
@@ -96,31 +107,13 @@ def plot_results(y_true, y_preds, names):
     fig.autofmt_xdate()
 
     # save plot
-    plt.savefig("images/results.png")
+    plt.savefig("images/vic/" + location + ".png")
 
 
-def main():
-    # see import statements for more info
-    lstm = keras.models.load_model("model/lstm.keras")
-    gru = keras.models.load_model("model/gru.keras")
-    saes = keras.models.load_model("model/saes.keras")
-    models = [lstm, gru, saes]
-    names = ["LSTM", "GRU", "SAEs"]
+def run_model(location, model_names, save_image=True):
 
-    parser = argparse.ArgumentParser()
-
-    # add arg for location
-    parser.add_argument(
-        "--location",
-        help="Location to extract data from.",
-    )
-
-    args = parser.parse_args()
-
-    location = args.location
-
-    if location is None:
-        raise ValueError("Location is required")
+    if model_names is None:
+        model_names = ["lstms", "grus", "saes"]
 
     lag = 12
     file1 = "data/vic_test_train/train_" + location + ".csv"
@@ -129,9 +122,19 @@ def main():
     _, _, X_test, y_test, scaler = process_data(file1, file2, lag)
     y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).reshape(1, -1)[0]
 
+    models = []
+
+    # see import statements for more info
+    for name in model_names:
+        models.append(
+            keras.models.load_model(
+                "model/vic/" + location + "_" + name.lower() + ".keras"
+            )
+        )
+
     y_preds = []
-    for name, model in zip(names, models):
-        if name == "SAEs":
+    for name, model in zip(model_names, models):
+        if name == "saes":
             X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1]))
         else:
             X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
@@ -140,11 +143,70 @@ def main():
         # keras.utils.plot_model(model, to_file=file, show_shapes=True)
         predicted = model.predict(X_test)
         predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
-        y_preds.append(predicted[:288])
+        y_preds.append(predicted[:NUMBER_OF_5_MINUTE_INTERVALS_IN_DAY])
         print(name)
         eva_regress(y_test, predicted)
 
-    plot_results(y_test[:288], y_preds, names)
+    # get predictions for each time interval
+
+    predictions = []
+
+    for i in range(NUMBER_OF_5_MINUTE_INTERVALS_IN_DAY):
+        prediction = []
+        for y_pred in y_preds:
+            prediction.append(y_pred[i])
+        predictions.append(prediction)
+
+    if save_image:
+        plot_results(
+            y_test[:NUMBER_OF_5_MINUTE_INTERVALS_IN_DAY], y_preds, model_names, location
+        )
+
+    return predictions
+
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    # add arg for location
+    parser.add_argument(
+        "--location",
+        help="Location to extract data from.",
+    )
+
+    # add arg for models
+
+    parser.add_argument(
+        "--models",
+        nargs="+",
+        help="Models to train.",
+    )
+
+    args = parser.parse_args()
+
+    location = args.location
+
+    models = args.models
+
+    # verify location
+
+    if location is None:
+        raise ValueError("Location is required")
+
+    # verify models
+
+    if models is None:
+        raise ValueError("Models are required")
+
+    models = [model.lower() for model in models]
+
+    valid_models = ["lstm", "gru", "saes"]
+
+    for model in models:
+        if model not in valid_models:
+            raise ValueError(f"Invalid model {model}. Valid models are {valid_models}")
+
+    run_model(location, models)
 
 
 if __name__ == "__main__":
