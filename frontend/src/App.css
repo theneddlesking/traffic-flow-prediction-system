@@ -31,7 +31,7 @@ input[type="number"]:focus {
 .map-container {
   width: 75vw;
   height: 75vh;
-  padding: 100px;
+  padding: 50px;
 }
 
 .leaflet-container {
@@ -45,6 +45,29 @@ input[type="number"]:focus {
 
 body {
   margin: 0;
+}
+
+.navigation-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  margin: 25px 0;
+}
+
+input {
+  width: 100%;
+  font-size: 16px;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  background-color: #fff;
+  box-sizing: border-box;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 /* Navbar */
