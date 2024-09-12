@@ -7,18 +7,14 @@ import './App.css';
 import MapRouting from './MapRouting';
 import NavigationMenu from './NavigationMenu';
 
-type Location = {
-  location_id: number;
-  site_number: number;
-  name: string;
-  lat: number;
-  long: number;
-};
+import type { Location } from './types';
+
 
 function Map() {
-
   const [mapInit, setMapInit] = useState(false);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [startPoint, setStartPoint] = useState<Location | null>(null); 
+  const [endPoint, setEndPoint] = useState<Location | null>(null);    
 
   useEffect(() => {
     axios.get<{ locations: Location[] }>('http://127.0.0.1:8000/site/locations')
@@ -54,13 +50,7 @@ function Map() {
 
   return (
     <div className='map-container'>
-      <NavigationMenu />
-      {/* List all the locations as an unordered list */}
-      <ul>
-        {locations.map(location => (
-          <li key={location.site_number}>{location.site_number} - {location.name}</li>
-        ))}
-      </ul>
+      <NavigationMenu setStartPoint={setStartPoint} setEndPoint={setEndPoint} locations={locations} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true} ref={saveMap}>
         <TileLayer
@@ -78,7 +68,6 @@ function Map() {
                     return;
                   }
 
-                  // only as int
                   const flowStr = flow.toFixed(0);
                   alert(`Predicted traffic flow at ${location.site_number} - ${location.name} is ${flowStr} at 12:00`);
                 }
@@ -90,11 +79,13 @@ function Map() {
             </Marker>
         ))}
         
-        {mapInit && <MapRouting />}
+        {mapInit && startPoint && endPoint && (
+          <MapRouting startPoint={startPoint} endPoint={endPoint} />
+        )}
       </MapContainer>
       <div className='padding-div' />
     </div>
   )
 }
 
-export default Map
+export default Map;

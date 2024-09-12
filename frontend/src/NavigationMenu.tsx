@@ -1,33 +1,68 @@
-import './App.css'
 import { useState } from 'react';
+import './App.css';
 
-function NavigationMenu() {
-  const [startPoint, setStartPoint] = useState('');
-  const [endPoint, setEndPoint] = useState('');
+import type { Location } from './types';
+
+type NavigationMenuProps = {
+  setStartPoint: (coordinates: Location) => void;
+  setEndPoint: (coordinates: Location) => void;
+  locations: Location[];
+};
+
+function NavigationMenu({ setStartPoint, setEndPoint, locations }: NavigationMenuProps) {
+  const [startInput, setStartInput] = useState('');
+  const [endInput, setEndInput] = useState('');
 
   const handleRouting = () => {
-    console.log(`Start Point: ${startPoint}, End Point: ${endPoint}`);
+    // get name and coordinates from startInput
+    const startLocation = locations.find(location => location.name === startInput);
+
+    if (!startLocation) {
+      alert('Starting point not found');
+      return;
+    }
+    
+    const endLocation = locations.find(location => location.name === endInput);
+
+    if (!endLocation) {
+      alert('Destination not found');
+      return;
+    }
+
+    setStartPoint(startLocation);
+    setEndPoint(endLocation);
   };
 
   return (
-    <div className='navigation-container'>
-      <input
-        placeholder='Starting Point'
-        type="text"
-        id="start"
-        value={startPoint}
-        onChange={(e) => setStartPoint(e.target.value)}
-      />
-      <input
-        placeholder='Destination'
-        type="text"
-        id="end"
-        value={endPoint}
-        onChange={(e) => setEndPoint(e.target.value)}
-      />
-      <button onClick={handleRouting}>Find Route</button>
-    </div>
+    <>
+      <div className='navigation-container'>
+        <input
+          placeholder='Starting Point'
+          type="text"
+          id="start"
+          value={startInput}
+          onChange={(e) => setStartInput(e.target.value)}
+          list="locations"
+        />
+        <input
+          placeholder='Destination'
+          type="text"
+          id="end"
+          value={endInput}
+          onChange={(e) => setEndInput(e.target.value)}
+          list="locations"
+        />
+        <button onClick={handleRouting}>Find Route</button>
+      </div>
+
+    
+      <datalist id="locations">
+        {locations.map(location => (
+          <option key={location.location_id} value={location.name} />
+        ))}
+      </datalist>
+    </>
   );
 };
 
-export default NavigationMenu
+export default NavigationMenu;

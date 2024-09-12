@@ -109,3 +109,14 @@ nav ul li a {
 nav ul li a:hover {
   background-color: #555;
 }
+
+/* hide leaflet route */
+.leaflet-control-container .leaflet-routing-container-hide {
+  display: none;
+}
+
+div.leaflet-top.leaflet-right {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+}
