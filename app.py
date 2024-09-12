@@ -3,11 +3,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from api.fix_dist import fix_dist
+from api.routes.site import router as site_router
+from api.routes.routing import router as routing_router
 from main import main
 import sys
-sys.stdout.reconfigure(encoding='utf-8')
+
+sys.stdout.reconfigure(encoding="utf-8")
 
 app = FastAPI()
+
+# use site router
+app.include_router(site_router, prefix="/site")
+
+# use routing router
+app.include_router(routing_router, prefix="/routing")
 
 # allow CORS for frontend's origin
 origins = [
