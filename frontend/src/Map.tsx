@@ -1,8 +1,8 @@
-import 'leaflet/dist/leaflet.css';
-import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Icon } from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { useEffect, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
-import {Icon} from 'leaflet';
 import './App.css';
 import MapRouting from './MapRouting';
 import NavigationMenu from './NavigationMenu';
@@ -30,8 +30,8 @@ function Map() {
       });
   }, []);
 
-  const getFlow = (location_id: number) => {
-    axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location_id}&time=12:00`)
+  const getFlow = async (location_id: number) => {
+    return await axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location_id}&time=12:00`)
       .then(flow => {
         console.log(flow.data.flow);
         return flow.data.flow;
@@ -68,13 +68,26 @@ function Map() {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
         {locations.map(location => (
-          <div onClick={(e) => getFlow(location.location_id)}>
-            <Marker key={location.site_number} position={[location.lat, location.long]} icon={dotIcon}>
+            <Marker key={location.site_number} position={[location.lat, location.long]} icon={dotIcon}
+              eventHandlers={{
+                click: async () => {
+                  const flow = await getFlow(location.location_id);
+
+                  if (flow === undefined) {
+                    alert(`Traffic flow at ${location.site_number} - ${location.name} is not available`);
+                    return;
+                  }
+
+                  // only as int
+                  const flowStr = flow.toFixed(0);
+                  alert(`Predicted traffic flow at ${location.site_number} - ${location.name} is ${flowStr} at 12:00`);
+                }
+              }}
+            >
               <Popup>
                 {location.site_number} - {location.name}
               </Popup>
             </Marker>
-          </div>
         ))}
         
         {mapInit && <MapRouting />}
