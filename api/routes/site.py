@@ -8,7 +8,7 @@ router = APIRouter()
 
 # from location and time of day return the flow
 @router.get("/flow")
-async def get_flow(site_number: int, time: str):
+async def get_flow(location_id: int, time: str):
 
     # check against cache
 
@@ -40,18 +40,21 @@ async def get_locations():
                 "name": "HIGH_ST W OF WILLS_ST",
                 "lat": -37.86155,
                 "long": 145.05751,
+                "location_id": 1,
             },
             {
                 "site_number": 3120,
                 "name": "RATHMINES_RD W of BURKE_RD",
                 "lat": -37.82284,
                 "long": 145.05684,
+                "location_id": 2,
             },
             {
                 "site_number": 3122,
                 "name": "CANTERBURY_RD E of STANHOPE_GV",
                 "lat": -37.82379,
                 "long": 145.06466,
+                "location_id": 3,
             },
         ]
     }
