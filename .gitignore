@@ -130,3 +130,6 @@ ENV/
 
 # ignore vic data
 vic
+
+# ignore db
+db/site.db
