@@ -1,5 +1,6 @@
 # site route
 
+import sqlite3
 from fastapi import APIRouter
 import numpy as np
 
@@ -32,29 +33,25 @@ async def get_locations():
     """Get all locations"""
     # get site number, name, and long lat
 
-    # dummy data for now
-    return {
-        "locations": [
-            {
-                "site_number": 2846,
-                "name": "HIGH_ST W OF WILLS_ST",
-                "lat": -37.86155,
-                "long": 145.05751,
-                "location_id": 1,
-            },
-            {
-                "site_number": 3120,
-                "name": "RATHMINES_RD W of BURKE_RD",
-                "lat": -37.82284,
-                "long": 145.05684,
-                "location_id": 2,
-            },
-            {
-                "site_number": 3122,
-                "name": "CANTERBURY_RD E of STANHOPE_GV",
-                "lat": -37.82379,
-                "long": 145.06466,
-                "location_id": 3,
-            },
-        ]
-    }
+    conn = sqlite3.connect("./db/site.db")
+
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT site_number, name, lat, long FROM locations")
+
+    locations = cursor.fetchall()
+
+    conn.close()
+
+    # convert locations to dict
+    locations = [
+        {
+            "site_number": location[0],
+            "name": location[1],
+            "lat": location[2],
+            "long": location[3],
+        }
+        for location in locations
+    ]
+
+    return {"locations": locations}
