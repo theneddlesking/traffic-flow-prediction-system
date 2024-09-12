@@ -4,14 +4,17 @@ import './App.css';
 import type { Location } from './types';
 
 type NavigationMenuProps = {
+  startPoint: Location | null;
+  endPoint: Location | null;
   setStartPoint: (coordinates: Location) => void;
   setEndPoint: (coordinates: Location) => void;
   locations: Location[];
 };
 
-function NavigationMenu({ setStartPoint, setEndPoint, locations }: NavigationMenuProps) {
+function NavigationMenu({ startPoint, endPoint, setStartPoint, setEndPoint, locations }: NavigationMenuProps) {
   const [startInput, setStartInput] = useState('');
   const [endInput, setEndInput] = useState('');
+
 
   const handleRouting = () => {
     // get name and coordinates from startInput
@@ -32,6 +35,14 @@ function NavigationMenu({ setStartPoint, setEndPoint, locations }: NavigationMen
     setStartPoint(startLocation);
     setEndPoint(endLocation);
   };
+
+  if (startPoint && startInput !== startPoint.name) {
+    setStartInput(startPoint.name);
+  }
+
+  if (endPoint && endInput !== endPoint.name) {
+    setEndInput(endPoint.name);
+  }
 
   return (
     <>

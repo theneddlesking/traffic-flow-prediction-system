@@ -50,7 +50,7 @@ function Map() {
 
   return (
     <div className='map-container'>
-      <NavigationMenu setStartPoint={setStartPoint} setEndPoint={setEndPoint} locations={locations} />
+      <NavigationMenu startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPoint} setEndPoint={setEndPoint} locations={locations} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true} ref={saveMap}>
         <TileLayer
@@ -58,9 +58,19 @@ function Map() {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
         {locations.map(location => (
-            <Marker key={location.site_number} position={[location.lat, location.long]} icon={dotIcon}
+            <Marker key={location.location_id} position={[location.lat, location.long]} icon={dotIcon}
               eventHandlers={{
                 click: async () => {
+
+                  console.log('Start point:', startPoint);
+                  if (startPoint === null) {
+                    console.log('Setting start point');
+                    setStartPoint(location);
+                  } else if (endPoint === null) {
+                    console.log('Setting end point');
+                    setEndPoint(location);
+                  }
+                  
                   const flow = await getFlow(location.location_id);
 
                   if (flow === undefined) {
@@ -70,6 +80,7 @@ function Map() {
 
                   const flowStr = flow.toFixed(0);
                   alert(`Predicted traffic flow at ${location.site_number} - ${location.name} is ${flowStr} at 12:00`);
+
                 }
               }}
             >
