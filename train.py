@@ -18,7 +18,7 @@ from keras.callbacks import EarlyStopping
 warnings.filterwarnings("ignore")
 
 
-def train_model(model, X_train, y_train, name, config, root):
+def train_model(model, X_train, y_train, name, config, root, location):
     """train
     train a single model.
 
@@ -42,12 +42,16 @@ def train_model(model, X_train, y_train, name, config, root):
 
     # https://keras.io/guides/migrating_to_keras_3/ - Keras 3 only supports V3 `.keras` files and legacy H5 format files (`.h5` extension)
     # updated to just use .keras extension instead of .h5
-    model.save(root + "/model/" + name + ".keras")
+    model.save(root + "/model/vic/" + location + "_" + name + ".keras")
     df = pd.DataFrame.from_dict(hist.history)
-    df.to_csv(root + "/model/" + name + " loss.csv", encoding="utf-8", index=False)
+    df.to_csv(
+        root + "/model/vic/" + location + "_" + name + " loss.csv",
+        encoding="utf-8",
+        index=False,
+    )
 
 
-def train_saes(models, X_train, y_train, name, config, root):
+def train_saes(models, X_train, y_train, name, config, root, location):
     """train
     train the SAEs model.
 
@@ -88,7 +92,8 @@ def train_saes(models, X_train, y_train, name, config, root):
     for i in range(len(models) - 1):
         weights = models[i].get_layer("hidden").get_weights()
         saes.get_layer("hidden%d" % (i + 1)).set_weights(weights)
-    train_model(saes, X_train, y_train, name, config, root)
+
+    train_model(saes, X_train, y_train, name, config, root, location)
 
 
 def is_colab():
@@ -99,6 +104,49 @@ def is_colab():
         return True
     except ImportError:
         return False
+
+
+def train_model_for_location(location, root, model_name, config):
+    """Train the model for a specific location.
+
+    Args:
+        location (str): The location to train the model for.
+        root (str): The root file path.
+        model (str): The model to train.
+        config (dict): The configuration for training the model.
+    """
+    lag = 12
+
+    file1 = root + "/data/vic_test_train/train_" + location + ".csv"
+    file2 = root + "/data/vic_test_train/test_" + location + ".csv"
+
+    # check if files exist
+
+    try:
+        with open(file1, encoding="utf-8") as f:
+            pass
+
+        with open(file2, encoding="utf-8") as f:
+            pass
+
+    except FileNotFoundError:
+        print("File not found. Check that you have the correct location name.")
+        return
+
+    x_train, y_train, _, _, _ = process_data(file1, file2, lag)
+
+    if model_name == "lstm":
+        x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+        m = model.get_lstm([12, 64, 64, 1])
+        train_model(m, x_train, y_train, model_name, config, root, location)
+    if model_name == "gru":
+        x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+        m = model.get_gru([12, 64, 64, 1])
+        train_model(m, x_train, y_train, model_name, config, root, location)
+    if model_name == "saes":
+        x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1]))
+        m = model.get_saes([12, 400, 400, 400, 1])
+        train_saes(m, x_train, y_train, model_name, config, root, location)
 
 
 def main(argv):
@@ -153,8 +201,6 @@ def main(argv):
     else:
         print("Not running on Google Colab")
 
-    lag = 12
-
     # if not on gpu then reduce the number of epochs
 
     if not devices and args.epochs > 10 and not args.force:
@@ -168,36 +214,7 @@ def main(argv):
 
     config = {"batch": 256, "epochs": args.epochs}
 
-    file1 = args.root + "/data/vic_test_train/train_" + location + ".csv"
-    file2 = args.root + "/data/vic_test_train/test_" + location + ".csv"
-
-    # check if files exist
-
-    try:
-        with open(file1, encoding="utf-8") as f:
-            pass
-
-        with open(file2, encoding="utf-8") as f:
-            pass
-
-    except FileNotFoundError:
-        print("File not found. Check that you have the correct location name.")
-        return
-
-    x_train, y_train, _, _, _ = process_data(file1, file2, lag)
-
-    if args.model == "lstm":
-        x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-        m = model.get_lstm([12, 64, 64, 1])
-        train_model(m, x_train, y_train, args.model, config, args.root)
-    if args.model == "gru":
-        x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-        m = model.get_gru([12, 64, 64, 1])
-        train_model(m, x_train, y_train, args.model, config, args.root)
-    if args.model == "saes":
-        x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1]))
-        m = model.get_saes([12, 400, 400, 400, 1])
-        train_saes(m, x_train, y_train, args.model, config, args.root)
+    train_model_for_location(location, args.root, args.model, config)
 
 
 if __name__ == "__main__":

@@ -128,8 +128,12 @@ ENV/
 # ignore zip
 *.zip
 
-# ignore vic data
-vic
+# ignore contents of vic folders
+**/vic/**
+
+# do not ignore the vic folder itself
+!**vic/
+!**/vic/.gitkeep
 
 # ignore db
 db/site.db
