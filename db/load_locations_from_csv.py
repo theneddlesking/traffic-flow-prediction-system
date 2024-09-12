@@ -1,8 +1,6 @@
 import pandas as pd
 import sqlite3
 
-from init import init_db
-
 
 def load_locations():
     CSV = "./data/vic/ScatsOctober2006.csv"
@@ -29,6 +27,10 @@ def load_locations():
 
     # remove duplicates
     df = df.drop_duplicates()
+
+    # add index to df
+
+    df["id"] = range(1, len(df) + 1)
 
     # add locations to db
     df.to_sql("locations", conn, if_exists="replace", index=False)

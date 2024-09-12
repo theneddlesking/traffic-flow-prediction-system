@@ -26,6 +26,19 @@ NUMBER_OF_15_MINUTES_PER_DAY = 96
 NUMBER_OF_PERIODS = NUMBER_OF_DAYS * NUMBER_OF_15_MINUTES_PER_DAY
 
 
+def convert_minute_index_to_str(i, length_of_period=15):
+    period_per_hour = 60 // length_of_period
+
+    hours = i // period_per_hour
+    minutes = (i % period_per_hour) * length_of_period
+
+    # pad 0s to make it 2 digits
+    hours_str = str(hours).zfill(2)
+    minutes_str = str(minutes).zfill(2)
+
+    return f"{hours_str}:{minutes_str}"
+
+
 def create_test_train_from_location(location):
 
     csv = "./data/vic/ScatsOctober2006.csv"
@@ -33,16 +46,6 @@ def create_test_train_from_location(location):
     df = pd.read_csv(csv, encoding="utf-8")
 
     # output df
-
-    def convert_15_minute_index_to_str(i):
-        hours = i // 4
-        minutes = (i % 4) * 15
-
-        # pad 0s to make it 2 digits
-        hours_str = str(hours).zfill(2)
-        minutes_str = str(minutes).zfill(2)
-
-        return f"{hours_str}:{minutes_str}"
 
     # select only certain location
     df = df[df["LOCATION"] == location]
@@ -62,7 +65,7 @@ def create_test_train_from_location(location):
 
             output_df.append(
                 {
-                    "15 Minutes": date + " " + convert_15_minute_index_to_str(i),
+                    "15 Minutes": date + " " + convert_minute_index_to_str(i),
                     "Lane 1 Flow (Veh/5 Minutes)": flow[i],
                     "# Lane Points": 1,
                     "% Observed": 100,
@@ -89,6 +92,22 @@ def create_test_train_from_location(location):
     test_df.to_csv(
         "./data/vic_test_train/test_" + location + ".csv", encoding="utf-8", index=False
     )
+
+
+def clean_test_train():
+    # remove all files in data/vic_test_train
+
+    import os
+
+    folder = "./data/vic_test_train"
+
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"Error removing {file_path}: {e}")
 
 
 if __name__ == "__main__":
