@@ -8,6 +8,7 @@ import MapRouting from './MapRouting';
 import NavigationMenu from './NavigationMenu';
 
 type Location = {
+  location_id: number;
   site_number: number;
   name: string;
   lat: number;
@@ -29,6 +30,17 @@ function Map() {
       });
   }, []);
 
+  const getFlow = (location_id: number) => {
+    axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location_id}&time=12:00`)
+      .then(flow => {
+        console.log(flow.data.flow);
+        return flow.data.flow;
+      })
+      .catch(error => {
+        console.error('There was an error fetching the data!', error);
+      });
+  }
+
   const dotIcon = new Icon({
     iconUrl: 'https://img.icons8.com/?size=100&id=24801&format=png&color=000000',
     iconSize: [15, 15]
@@ -43,6 +55,12 @@ function Map() {
   return (
     <div className='map-container'>
       <NavigationMenu />
+      {/* List all the locations as an unordered list */}
+      <ul>
+        {locations.map(location => (
+          <li key={location.site_number}>{location.site_number} - {location.name}</li>
+        ))}
+      </ul>
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true} ref={saveMap}>
         <TileLayer
@@ -50,11 +68,13 @@ function Map() {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
         {locations.map(location => (
-          <Marker key={location.site_number} position={[location.lat, location.long]} icon={dotIcon}>
-            <Popup>
-              {location.site_number} - {location.name}
-            </Popup>
-          </Marker>
+          <div onClick={(e) => getFlow(location.location_id)}>
+            <Marker key={location.site_number} position={[location.lat, location.long]} icon={dotIcon}>
+              <Popup>
+                {location.site_number} - {location.name}
+              </Popup>
+            </Marker>
+          </div>
         ))}
         
         {mapInit && <MapRouting />}
