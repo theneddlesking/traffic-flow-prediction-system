@@ -14,10 +14,6 @@ type Location = {
   long: number;
 };
 
-type LocationResponse = {
-  locations: Location[];
-};
-
 function Map() {
 
   const [mapInit, setMapInit] = useState(false);
@@ -27,9 +23,6 @@ function Map() {
     axios.get<{ locations: Location[] }>('http://127.0.0.1:8000/site/locations')
       .then(locations => {
         setLocations(locations.data.locations);
-        locations.data.locations.forEach(location => {
-          console.log(location);
-        });
       })
       .catch(error => {
         console.error('There was an error fetching the data!', error);
