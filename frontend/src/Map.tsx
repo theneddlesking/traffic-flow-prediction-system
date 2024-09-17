@@ -74,12 +74,12 @@ function Map() {
                   const flow = await getFlow(location.location_id);
 
                   if (flow === undefined) {
-                    alert(`Traffic flow at ${location.site_number} - ${location.name} is not available`);
+                    // alert(`Traffic flow at ${location.site_number} - ${location.name} is not available`);
                     return;
                   }
 
                   const flowStr = flow.toFixed(0);
-                  alert(`Predicted traffic flow at ${location.site_number} - ${location.name} is ${flowStr} at 12:00`);
+                  // alert(`Predicted traffic flow at ${location.site_number} - ${location.name} is ${flowStr} at 12:00`);
 
                 }
               }}

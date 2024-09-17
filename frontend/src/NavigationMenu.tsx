@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import './App.css';
 
 import type { Location } from './types';
@@ -6,43 +5,34 @@ import type { Location } from './types';
 type NavigationMenuProps = {
   startPoint: Location | null;
   endPoint: Location | null;
-  setStartPoint: (coordinates: Location) => void;
-  setEndPoint: (coordinates: Location) => void;
+  setStartPoint: (coordinates: Location | null) => void;
+  setEndPoint: (coordinates: Location | null) => void;
   locations: Location[];
 };
 
 function NavigationMenu({ startPoint, endPoint, setStartPoint, setEndPoint, locations }: NavigationMenuProps) {
-  const [startInput, setStartInput] = useState('');
-  const [endInput, setEndInput] = useState('');
 
-
-  const handleRouting = () => {
-    // get name and coordinates from startInput
-    const startLocation = locations.find(location => location.name === startInput);
-
-    if (!startLocation) {
-      alert('Starting point not found');
+  const validateStartInput = (input: string) => {
+    if (input === '') {
+      setStartPoint(null);
       return;
     }
-    
-    const endLocation = locations.find(location => location.name === endInput);
-
-    if (!endLocation) {
-      alert('Destination not found');
-      return;
+    const location = locations.find(location => location.name === input);
+    if (location != null) {
+      setStartPoint(location);
     }
-
-    setStartPoint(startLocation);
-    setEndPoint(endLocation);
   };
 
-  if (startPoint && startInput !== startPoint.name) {
-    setStartInput(startPoint.name);
-  }
-
-  if (endPoint && endInput !== endPoint.name) {
-    setEndInput(endPoint.name);
-  }
+  const validateEndInput = (input: string) => {
+    if (input === '') {
+      setEndPoint(null);
+      return;
+    }
+    const location = locations.find(location => location.name === input);
+    if (location != null) {
+      setEndPoint(location);
+    }
+  };
 
   return (
     <>
@@ -51,19 +41,22 @@ function NavigationMenu({ startPoint, endPoint, setStartPoint, setEndPoint, loca
           placeholder='Starting Point'
           type="text"
           id="start"
-          value={startInput}
-          onChange={(e) => setStartInput(e.target.value)}
+          onClick={(e) => e.currentTarget.select()}
+          value={startPoint?.name}
+          onChange={(e) => validateStartInput(e.target.value)}
           list="locations"
         />
         <input
           placeholder='Destination'
           type="text"
           id="end"
-          value={endInput}
-          onChange={(e) => setEndInput(e.target.value)}
+          onClick={(e) => e.currentTarget.select()}
+          value={endPoint?.name}
+          onChange={(e) => validateEndInput(e.target.value)}
           list="locations"
         />
-        <button onClick={handleRouting}>Find Route</button>
+        {/* TODO: Make this button actually dispatch to MapRouting */}
+        <button>Find Route</button>
       </div>
 
     
