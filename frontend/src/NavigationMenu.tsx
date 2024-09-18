@@ -42,7 +42,6 @@ function NavigationMenu({ startPoint, endPoint, setStartPoint, setEndPoint, loca
           type="text"
           id="start"
           onClick={(e) => e.currentTarget.select()}
-          value={startPoint?.name}
           onChange={(e) => validateStartInput(e.target.value)}
           list="locations"
         />
@@ -51,7 +50,6 @@ function NavigationMenu({ startPoint, endPoint, setStartPoint, setEndPoint, loca
           type="text"
           id="end"
           onClick={(e) => e.currentTarget.select()}
-          value={endPoint?.name}
           onChange={(e) => validateEndInput(e.target.value)}
           list="locations"
         />

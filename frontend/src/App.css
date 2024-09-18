@@ -31,7 +31,7 @@ input[type="number"]:focus {
 .map-container {
   width: 75vw;
   height: 75vh;
-  padding: 50px;
+  padding: 100px 50px 50px 50px;
 }
 
 .leaflet-container {
@@ -70,35 +70,33 @@ input {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
-/* Navbar */
-nav {
+/* Main Navbar */
+.main-nav {
   position: fixed;
   background-color: #333;
-  padding: 0 20px;
   display: flex;
-  justify-content: center;
   top: 0;
   left: 0;
   width: 100%;
   height: 60px;
   align-items: center;
-  justify-content: space-between;
-  z-index: 1000;
+  justify-content: right;
+  z-index: 100;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-nav ul {
+.main-nav ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
   display: flex;
 }
 
-nav ul li {
+.main-nav ul li {
   margin-right: 1rem;
 }
 
-nav ul li a {
+.main-nav ul li a {
   color: white;
   text-decoration: none;
   padding: 0.5rem 1rem;
@@ -106,7 +104,7 @@ nav ul li a {
   transition: background-color 0.3s ease;
 }
 
-nav ul li a:hover {
+.main-nav ul li a:hover {
   background-color: #555;
 }
 
