@@ -122,6 +122,7 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
                 <p>{startPoint.site_number} - {startPoint.name}</p>
                 <p>Latitude: {startPoint.lat}</p>
                 <p>Longitude: {startPoint.long}</p>
+                <p>Traffic flow: {startPoint.flow}</p>
               </Menu>
             )}
             {endPoint && (
@@ -130,6 +131,7 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
                 <p>{endPoint.site_number} - {endPoint.name}</p>
                 <p>Latitude: {endPoint.lat}</p>
                 <p>Longitude: {endPoint.long}</p>
+                <p>Traffic flow at 12:00: {endPoint.flow}</p>
               </Menu>
             )}
             {startPoint && endPoint && (

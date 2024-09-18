@@ -4,4 +4,5 @@ export type Location = {
   name: string;
   lat: number;
   long: number;
+  flow: number | null;
 };

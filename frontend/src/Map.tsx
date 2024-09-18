@@ -47,9 +47,29 @@ function Map() {
     }
   };
 
+  const setStartPointAndFetchTraffic = async (location: Location | null) => {
+    if (location !== null) {
+      setStartPoint(location);
+      const flow = await getFlow(location.location_id);
+      if (flow !== undefined) {
+        location.flow = flow;
+      }
+    }
+  };
+
+  const setEndPointAndFetchTraffic = async (location: Location | null) => {
+    if (location !== null) {
+      setEndPoint(location);
+      const flow = await getFlow(location.location_id);
+      if (flow !== undefined) {
+        location.flow = flow;
+      }
+    }
+  };
+
   return (
     <div className='map-container'>
-      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPoint} setEndPoint={setEndPoint} locations={locations} />
+      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} locations={locations} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true} ref={saveMap}>
         <TileLayer
@@ -72,8 +92,9 @@ function Map() {
                     console.log(`Traffic flow at ${location.site_number} - ${location.name} is not available`);
                     return;
                   }
-
+                  
                   const flowStr = flow.toFixed(0);
+                  location.flow = flow;
                   console.log(`Predicted traffic flow at ${location.site_number} - ${location.name} is ${flowStr} at 12:00`);
 
                 }
