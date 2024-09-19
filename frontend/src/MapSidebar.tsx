@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import type { Location } from './types';
 
 import {
-  ProSidebar,
   Menu,
-  SidebarHeader,
+  ProSidebar,
   SidebarContent,
+  SidebarHeader,
 } from "react-pro-sidebar";
 
 import { FiArrowLeftCircle, FiArrowRightCircle } from "react-icons/fi";
@@ -29,7 +29,7 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
 
   const [menuCollapse, setMenuCollapse] = useState(true);
   const menuIconClick = () => {
-    menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
+    return menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
   };
 
   useEffect(() => {
@@ -57,13 +57,25 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
     }
   };
 
-  const changeStartInput = () => {
+  const changeStartInput = (input: string) => {
+    if (input === '') {
+      setStartPointInput('');
+      setStartPoint(null);
+      return;
+    } 
+
     if (startPoint != null) {
       setStartPointInput(startPoint.name);
     }
   };
 
-  const changeEndInput = () => {
+  const changeEndInput = (input: string) => {
+    if (input === '') {
+      setEndPointInput('');
+      setEndPoint(null);
+      return;
+    }
+
     if (endPoint != null) {
       setEndPointInput(endPoint.name);
     }
@@ -93,7 +105,7 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
                   type="text"
                   id="start"
                   onClick={(e) => e.currentTarget.select()}
-                  onBlur={changeStartInput}
+                  onBlur={(e) => changeStartInput(e.target.value)}
                   value={startPointInput}
                   onChange={(e) => validateStartInput(e.target.value)}
                   list="locations"
@@ -103,7 +115,7 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
                   type="text"
                   id="end"
                   onClick={(e) => e.currentTarget.select()}
-                  onBlur={changeEndInput}
+                  onBlur={(e) => changeEndInput(e.target.value)}
                   disabled={startPoint == null}
                   value={endPointInput}
                   onChange={(e) => validateEndInput(e.target.value)}

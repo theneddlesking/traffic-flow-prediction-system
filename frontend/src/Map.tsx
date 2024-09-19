@@ -6,8 +6,8 @@ import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import './App.css';
 import MapRouting from './MapRouting';
 
-import type { Location } from './types';
 import MapSidebar from './MapSidebar';
+import type { Location } from './types';
 
 
 function Map() {
@@ -48,8 +48,9 @@ function Map() {
   };
 
   const setStartPointAndFetchTraffic = async (location: Location | null) => {
+    setStartPoint(location);
+
     if (location !== null) {
-      setStartPoint(location);
       const flow = await getFlow(location.location_id);
       if (flow !== undefined) {
         location.flow = flow;
@@ -58,8 +59,9 @@ function Map() {
   };
 
   const setEndPointAndFetchTraffic = async (location: Location | null) => {
+    setEndPoint(location);
+
     if (location !== null) {
-      setEndPoint(location);
       const flow = await getFlow(location.location_id);
       if (flow !== undefined) {
         location.flow = flow;
