@@ -19,6 +19,16 @@ function Map() {
   useEffect(() => {
     axios.get<{ locations: Location[] }>('http://127.0.0.1:8000/site/locations')
       .then(locations => {
+        // remap position based on offset
+        const latOffset = 0.00151;
+        const longOffset = 0.0013;
+
+        // for some reason the long lat is slightly off
+        locations.data.locations.forEach(location => {
+          location.lat += latOffset;
+          location.long += longOffset;
+        });
+
         setLocations(locations.data.locations);
       })
       .catch(error => {
@@ -69,8 +79,7 @@ function Map() {
     }
   };
 
-  const latOffset = 0.00151;
-  const longOffset = 0.0013;
+
 
   return (
     <div className='map-container'>
@@ -82,7 +91,7 @@ function Map() {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
         {locations.map(location => (
-            <Marker key={location.location_id} position={[location.lat + latOffset, location.long + longOffset]} icon={dotIcon}
+            <Marker key={location.location_id} position={[location.lat, location.long]} icon={dotIcon}
               eventHandlers={{
                 click: async () => {
                   if (startPoint === null) {
