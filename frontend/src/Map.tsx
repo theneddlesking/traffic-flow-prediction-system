@@ -69,6 +69,9 @@ function Map() {
     }
   };
 
+  const latOffset = 0.00151;
+  const longOffset = 0.0013;
+
   return (
     <div className='map-container'>
       <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} locations={locations} />
@@ -79,7 +82,7 @@ function Map() {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
         {locations.map(location => (
-            <Marker key={location.location_id} position={[location.lat, location.long]} icon={dotIcon}
+            <Marker key={location.location_id} position={[location.lat + latOffset, location.long + longOffset]} icon={dotIcon}
               eventHandlers={{
                 click: async () => {
                   if (startPoint === null) {

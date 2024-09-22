@@ -25,7 +25,7 @@ function Home() {
           <p>Group members:</p>
           <ul>
             <li>Olsen, Ned (104544609)</li>
-            <li>Something, Josh (********)</li>
+            <li>Celestino, Josh (104550240)</li>
             <li>Chuchuva, Anton (104584362)</li>
           </ul>
         </div>
