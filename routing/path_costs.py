@@ -31,14 +31,6 @@ def havarsine(lat1, lon1, lat2, lon2):
     return distance
 
 
-def average_flow(start_flow: int, end_flow: int):
-    # there are a few ways to compute the flow between two points
-
-    # for now we can just use a simple average
-
-    return (start_flow + end_flow) / 2
-
-
 async def get_hours_taken_between_points(
     start_location_id: int,
     end_location_id: int,
@@ -70,22 +62,44 @@ async def get_hours_taken_between_points(
 
     # we can use the haversine formula to get the distance between two points on the earth's surface
 
+    print("Getting Hours Taken Between Points")
+    print(start_location_id)
+    print(end_location_id)
+    print(speed_limit)
+    print(alpha)
+    print(time_of_day)
+
     start_location = await get_location(start_location_id)
     end_location = await get_location(end_location_id)
+
+    print("Getting Locations")
+    print(start_location)
+    print(end_location)
+
+    # if we have the same site number this means that we are at the same intersection
+    hours_taken_at_intersection = 30 / 3600
+
+    if start_location["site_number"] == end_location["site_number"]:
+        # assume that the time taken is 30 seconds for each intersection
+        return hours_taken_at_intersection
 
     start_flow = await get_flow(start_location_id, time_of_day)
     end_flow = await get_flow(end_location_id, time_of_day)
 
-    flow = average_flow(start_flow, end_flow)
-
-    start_capacity = await get_max_flow(start_location_id)
-    end_capacity = await get_max_flow(end_location_id)
+    # there are a few ways to compute the flow between two points
+    # for now we can just use a simple average
+    flow = (start_flow + end_flow) / 2
 
     print("Getting Flow")
     print(start_flow)
     print(end_flow)
     print(flow)
 
+    start_capacity = await get_max_flow(start_location_id)
+    end_capacity = await get_max_flow(end_location_id)
+
+    # there are a few ways to compute the capacity between two points
+    # for now we can just use a simple average
     capacity = (start_capacity + end_capacity) / 2
 
     print("Getting Capacity")
