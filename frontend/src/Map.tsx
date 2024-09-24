@@ -105,6 +105,10 @@ function Map() {
       if (flow !== undefined) {
         location.flow = flow;
       }
+
+      if (endPoint !== null) {
+        generateRoute();
+      }
     }
   };
 
@@ -138,6 +142,11 @@ function Map() {
                 click: async () => {
                   if (startPoint === null) {
                     setStartPoint(location);
+
+                    if (endPoint === null) {
+                      generateRoute(location);
+                    }
+
                   } else if (endPoint === null) {
                     setEndPoint(location);
                     generateRoute(location);
