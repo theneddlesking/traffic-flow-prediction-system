@@ -79,8 +79,6 @@ function Map() {
     }
   };
 
-
-
   return (
     <div className='map-container'>
       <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} locations={locations} />
