@@ -7,6 +7,7 @@ from build_train_run import build_train_run
 
 async def get_flow(location_id: int, time: str):
     """Get flow"""
+
     # get location data from db
     conn = sqlite3.connect("./db/site.db")
 

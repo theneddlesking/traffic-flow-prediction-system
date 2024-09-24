@@ -17,15 +17,6 @@ import pandas as pd
 import argparse
 
 
-DAYS_IN_OCTOBER = 31
-
-NUMBER_OF_DAYS = math.ceil(DAYS_IN_OCTOBER * 0.7)
-
-NUMBER_OF_15_MINUTES_PER_DAY = 96
-
-NUMBER_OF_PERIODS = NUMBER_OF_DAYS * NUMBER_OF_15_MINUTES_PER_DAY
-
-
 def convert_minute_index_to_str(i, length_of_period=15):
     period_per_hour = 60 // length_of_period
 
@@ -39,6 +30,12 @@ def convert_minute_index_to_str(i, length_of_period=15):
     return f"{hours_str}:{minutes_str}"
 
 
+TEST_TRAIN_RATIO = 0.7
+
+
+NUMBER_OF_15_MINUTES_PER_DAY = 96
+
+
 def create_test_train_from_location(location):
 
     csv = "./data/vic/ScatsOctober2006.csv"
@@ -49,6 +46,11 @@ def create_test_train_from_location(location):
 
     # select only certain location
     df = df[df["LOCATION"] == location]
+
+    # check number of days
+    number_of_days = df["DATE"].nunique()
+
+    print(f"Number of days: {number_of_days}")
 
     output_df = []
 
@@ -76,11 +78,15 @@ def create_test_train_from_location(location):
 
     output_df = pd.DataFrame(output_df)
 
+    number_of_days_in_train = math.ceil(number_of_days * TEST_TRAIN_RATIO)
+
+    number_of_periods = number_of_days_in_train * NUMBER_OF_15_MINUTES_PER_DAY
+
     # 70% to 30% ratio
-    train_df = output_df.iloc[:NUMBER_OF_PERIODS]
+    train_df = output_df.iloc[:number_of_periods]
 
     # rest use as test data
-    test_df = output_df.iloc[NUMBER_OF_PERIODS:]
+    test_df = output_df.iloc[number_of_periods:]
 
     # save to csv based on location name
     train_df.to_csv(

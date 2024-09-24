@@ -122,6 +122,10 @@ def train_model_for_location(location, root, model_name, config):
 
     # check if files exist
 
+    print(f"Training model for location: {location}")
+    print(file1)
+    print(file2)
+
     try:
         with open(file1, encoding="utf-8") as f:
             pass

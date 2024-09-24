@@ -36,7 +36,7 @@ def a_star(
         if current_node.location_id == goal:
             path = []
             while current_node:
-                path.append(current_node.location_id)
+                path.append(current_node)
                 current_node = current_node.parent
 
             # reverse path to get start to goal

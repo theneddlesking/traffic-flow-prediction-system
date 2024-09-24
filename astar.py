@@ -1,82 +1,59 @@
 # Example usage:
 import asyncio
-from db.site import get_location
+from db.site import get_locations
 from routing.astar import a_star
-from routing.path_costs import get_hours_taken_between_points
-
-
-graph = {
-    "A": {"B": 1, "C": 4},
-    "B": {"A": 1, "D": 2, "E": 5},
-    "C": {"A": 4, "E": 1},
-    "D": {"B": 2, "E": 3},
-    "E": {"B": 5, "C": 1, "D": 3},
-}
-
-
-def convert_letter_to_id(letter):
-    return ord(letter) - 64
-
-
-def convert_id_to_letter(id):
-    return chr(id + 64)
+from routing.get_paths import create_graph
 
 
 def heuristic(a, b):
-    letter = convert_id_to_letter(b)
-
-    return {
-        "A": 5,
-        "B": 4,
-        "C": 2,
-        "D": 2,
-        "E": 0,
-    }[letter]
+    return 0
 
 
-start = convert_letter_to_id("A")
-goal = convert_letter_to_id("E")
+TIME_OF_DAY = "18:00"
 
-speed_limit = 60
-alpha = 2
-time_of_day = "18:00"
+SPEED_LIMIT = 60
 
+ALPHA = 1
 
-def build_graph(original_graph):
-    graph = {}
-    for key, value in original_graph.items():
-        graph[convert_letter_to_id(key)] = {
-            convert_letter_to_id(k): v for k, v in value.items()
-        }
-    return graph
+graph = asyncio.run(create_graph(SPEED_LIMIT, TIME_OF_DAY, ALPHA))
 
-
-graph = build_graph(graph)
-
-
-async def replace_path_costs(graph):
-    new_graph = {}
-    for key, value in graph.items():
-        new_graph[key] = {
-            k: await get_hours_taken_between_points(
-                key, k, speed_limit, alpha, time_of_day
-            )
-            for k in value
-        }
-    return new_graph
-
-
-graph = asyncio.run(replace_path_costs(graph))
+start = 1
+goal = 120
 
 path = a_star(graph, start, goal, heuristic)
 
+all_locations = asyncio.run(get_locations())
 
-async def convert_id_to_name(ids):
-    return [await get_location(id) for id in ids]
+path_ids = [node.location_id for node in path]
 
+path_locations = []
 
-path = asyncio.run(convert_id_to_name(path))
+for location in all_locations:
+    if location["location_id"] in path_ids:
+        path_locations.append(location)
 
-path_names = [p["name"] for p in path]
+time_taken = sum([node.g for node in path])
 
+path_names = [location["name"] for location in path_locations]
+
+start = path_locations[0]
+goal = path_locations[-1]
+
+print("Start:")
+print(start)
+
+print("Goal:")
+print(goal)
+
+print("Path:")
 print(path_names)
+
+print("Time taken:")
+
+in_minutes = time_taken * 60
+
+minutes = in_minutes % 60
+
+hours = in_minutes // 60
+
+print(f"{hours} hours {minutes} minutes")
