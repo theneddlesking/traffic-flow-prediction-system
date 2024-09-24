@@ -6,21 +6,17 @@ import { useMap } from "react-leaflet";
 import type { Location } from "./types";
 
 type MapRoutingProps = {
-  startPoint: Location
-  endPoint: Location
+  waypoints: Location[];
 };
 
-function MapRouting({ startPoint, endPoint }: MapRoutingProps) {
+function MapRouting({ waypoints }: MapRoutingProps) {
   const map = useMap();
 
   useEffect(() => {
     if (!map) return;
 
     const routingControl = L.Routing.control({
-      waypoints: [
-        L.latLng(startPoint.lat, startPoint.long),
-        L.latLng(endPoint.lat, endPoint.long)   
-      ],
+      waypoints: waypoints.map(waypoint => L.latLng(waypoint.lat, waypoint.long)),
       lineOptions: {
         styles: [
           {
@@ -40,7 +36,7 @@ function MapRouting({ startPoint, endPoint }: MapRoutingProps) {
     return () => {
       map.removeControl(routingControl);
     };
-  }, [map, startPoint, endPoint]);
+  }, [map, waypoints]);
 
   return null;
 }

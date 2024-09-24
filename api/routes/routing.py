@@ -28,6 +28,11 @@ async def get_route(start_location_id: int, end_location_id: int, time_of_day: s
 
     path = a_star(graph, start, goal, heuristic)
 
+    if path is None:
+        return {
+            "error": "No path found. Could be because the start or end location is invalid."
+        }
+
     all_locations = await get_locations()
 
     path_ids = [node.location_id for node in path]

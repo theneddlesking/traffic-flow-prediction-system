@@ -9,12 +9,52 @@ import MapRouting from './MapRouting';
 import MapSidebar from './MapSidebar';
 import type { Location } from './types';
 
+type RoutingResponse = {
+  waypoints: Location[];
+  hours_taken: number;
+  error?: string;
+}
+
 
 function Map() {
   const [mapInit, setMapInit] = useState(false);
   const [locations, setLocations] = useState<Location[]>([]);
   const [startPoint, setStartPoint] = useState<Location | null>(null);
   const [endPoint, setEndPoint] = useState<Location | null>(null);
+  const [waypoints, setWaypoints] = useState<Location[]>([]);
+
+  const [timeOfDay, setTimeOfDay] = useState('12:00');
+
+  const generateRoute = async (possibleEndPoint?: Location) => {
+
+    const routeEndPoint = possibleEndPoint || endPoint;
+
+    // fetch route from backend
+    const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${startPoint?.location_id}&end_location_id=${routeEndPoint?.location_id}&time_of_day=${timeOfDay}`)
+
+    // handle error
+    if (res.data.error) {
+      console.error(res.data.error);
+      return;
+    }
+
+    const routeWaypoints = res.data.waypoints;
+
+    const routeHours = res.data.hours_taken;
+
+    const latOffset = 0.00151;
+    const longOffset = 0.0013;
+
+    const adjustedWaypoints = routeWaypoints.map(waypoint => {
+      waypoint.lat += latOffset;
+      waypoint.long += longOffset;
+      return waypoint;
+    });
+       
+    setWaypoints(adjustedWaypoints);
+
+    console.log(`Route takes ${routeHours} hours`);
+  }
 
   useEffect(() => {
     axios.get<{ locations: Location[] }>('http://127.0.0.1:8000/site/locations')
@@ -37,7 +77,7 @@ function Map() {
   }, []);
 
   const getFlow = async (location_id: number) => {
-    return await axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location_id}&time=12:00`)
+    return await axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location_id}&time=${timeOfDay}`)
       .then(flow => {
         return flow.data.flow;
       })
@@ -76,6 +116,10 @@ function Map() {
       if (flow !== undefined) {
         location.flow = flow;
       }
+
+      if (startPoint !== null) {
+        generateRoute();
+      }
     }
   };
 
@@ -96,6 +140,7 @@ function Map() {
                     setStartPoint(location);
                   } else if (endPoint === null) {
                     setEndPoint(location);
+                    generateRoute(location);
                   }
                   
                   const flow = await getFlow(location.location_id);
@@ -119,7 +164,7 @@ function Map() {
         ))}
         
         {mapInit && startPoint && endPoint && (
-          <MapRouting startPoint={startPoint} endPoint={endPoint} />
+          <MapRouting waypoints={waypoints} />
         )}
       </MapContainer>
       <div className='padding-div' />
