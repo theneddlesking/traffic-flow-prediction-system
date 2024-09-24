@@ -2,24 +2,48 @@
 
 from fastapi import APIRouter
 
+from db.site import get_locations
+from routing.astar import a_star
+from routing.get_paths import create_graph
+
 router = APIRouter()
 
 
 # find optimal route between point a and point b
 @router.get("/route")
-async def get_route(start_location_id: int, end_location_id: int):
-    # no need to cache cause everything should be fast and already exist
+async def get_route(start_location_id: int, end_location_id: int, time_of_day: str):
+    # TODO add some caching logic
 
-    # plan:
+    def heuristic(a, b):
+        return 0
 
-    # 1. get path costs from db
-    # 2. if path costs don't exist, calculate path costs - this will do some caching maybe
-    #   - to get path costs we need to get the paths
-    #   - we can hardcode a few of the paths for now
+    SPEED_LIMIT = 60
 
-    # 3. get the optimal path using astar, heuristic is euclidean distance but idk it will be admisible because speed limits
-    # maybe we can just estimate the path cost with some custom formula, or make a model that predicts the path cost
+    ALPHA = 1
 
-    # 4. return the waypoints
+    graph = await create_graph(SPEED_LIMIT, time_of_day, ALPHA)
 
-    return {"waypoints": []}
+    start = start_location_id
+    goal = end_location_id
+
+    path = a_star(graph, start, goal, heuristic)
+
+    all_locations = await get_locations()
+
+    path_ids = [node.location_id for node in path]
+
+    path_locations = []
+
+    for location in all_locations:
+        if location["location_id"] in path_ids:
+            path_locations.append(location)
+
+    time_taken = sum([node.g for node in path])
+
+    start = path_locations[0]
+    goal = path_locations[-1]
+
+    return {
+        "waypoints": path_locations,
+        "hours_taken": time_taken,
+    }
