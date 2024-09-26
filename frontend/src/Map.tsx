@@ -2,12 +2,13 @@ import axios from 'axios';
 import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
 import './App.css';
 import MapRouting from './MapRouting';
 
 import MapSidebar from './MapSidebar';
 import type { Location } from './types';
+
 
 type RoutingResponse = {
   waypoints: Location[];
@@ -24,6 +25,29 @@ function Map() {
   const [waypoints, setWaypoints] = useState<Location[]>([]);
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
+
+  const roadSegments = [
+    [
+      [141.587093, -38.34681],
+      [141.58711, -38.34604]
+    ],
+    [
+      [141.58711, -38.34604],
+      [141.587122, -38.345727]
+    ],
+    [
+      [141.587122, -38.345727],
+      [141.587134, -38.345126],
+      [141.587166, -38.34433]
+    ]
+  ];
+
+  const flippedRoadSegements = roadSegments.map(segment => {
+    return segment.map(point => {
+      return [point[1], point[0]];
+    });
+  });
+
 
   const generateRoute = async (possibleEndPoint?: Location) => {
 
@@ -127,6 +151,7 @@ function Map() {
     }
   };
 
+
   return (
     <div className='map-container'>
       <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} locations={locations} />
@@ -171,10 +196,13 @@ function Map() {
               </Popup>
             </Marker>
         ))}
-        
+
+        <Polyline positions={flippedRoadSegements} pathOptions={{color: "blue"}} />        
+
         {mapInit && startPoint && endPoint && (
           <MapRouting waypoints={waypoints} />
         )}
+
       </MapContainer>
       <div className='padding-div' />
     </div>

@@ -118,3 +118,8 @@ div.leaflet-top.leaflet-right {
   width: 0px !important;
   height: 0px !important;
 }
+
+svg {
+  height: auto;
+  width: auto;
+}
