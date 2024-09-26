@@ -48,6 +48,7 @@ function Map() {
     });
   });
 
+  const allPoints = roadSegments.flat();
 
   const generateRoute = async (possibleEndPoint?: Location) => {
 
@@ -197,7 +198,17 @@ function Map() {
             </Marker>
         ))}
 
-        <Polyline positions={flippedRoadSegements} pathOptions={{color: "blue"}} />        
+        <Polyline positions={flippedRoadSegements} pathOptions={{color: "blue"}} />    
+
+        {flippedRoadSegements.flat().map(([lat, lng], index) => (
+        <Marker key={index} position={[lat, lng]} icon={dotIcon}>
+          <Popup>
+            Lat: {lat}, Lng: {lng}
+          </Popup>
+        </Marker>
+      ))}
+
+
 
         {mapInit && startPoint && endPoint && (
           <MapRouting waypoints={waypoints} />
