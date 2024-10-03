@@ -2,8 +2,8 @@ import pandas as pd
 from tqdm import tqdm
 from fuzzywuzzy import fuzz
 
-traffic_df = pd.read_csv('data/vic/NewData/Filtered_Traffic_Count_Locations.csv')
-scats_df = pd.read_csv('data/vic/NewData/SCATS_SiteDefinition.csv')
+traffic_df = pd.read_csv('Filtered_Traffic_Count_Locations.csv')
+scats_df = pd.read_csv('SCATS_SiteDefinition.csv')
 
 abbreviations = {
     'nr': 'near',
@@ -27,7 +27,7 @@ def normalize_description(desc):
     return desc
 
 # Function to perform fuzzy matching with a subset
-def fuzzy_match_scats_to_traffic_subset(traffic_df, scats_df, threshold=80, traffic_sample_size=2000, scats_sample_size=2000):
+def fuzzy_match_scats_to_traffic_subset(traffic_df, scats_df, threshold=80, traffic_sample_size=500, scats_sample_size=500):
     # Select a sample of rows from the original datasets for testing
     traffic_sample = traffic_df.sample(n=traffic_sample_size, random_state=1)
     scats_sample = scats_df.sample(n=scats_sample_size, random_state=1)
@@ -55,7 +55,7 @@ def fuzzy_match_scats_to_traffic_subset(traffic_df, scats_df, threshold=80, traf
                 'LAT': best_match['LATITUDE'],
                 'SCATS_ID': scats_row['SITE_NUMBER'],
                 'NAME': scats_row['LOCATION_DESCRIPTION'],
-                'MAP_REFERENCE': scats_row['MAP_REFERENCE'],
+                #'MAP_REFERENCE': scats_row['MAP_REFERENCE'],
                 'TYPE_OF_ROAD': best_match['TFM_TYP_DE'],
                 'SPEED_LIMIT': 'N/A',
                 'NUMBER_OF_LANES': 'N/A',
@@ -65,11 +65,11 @@ def fuzzy_match_scats_to_traffic_subset(traffic_df, scats_df, threshold=80, traf
 
     return output_rows
 
-matched_data_subset = fuzzy_match_scats_to_traffic_subset(traffic_df, scats_df, threshold=80, traffic_sample_size=2000, scats_sample_size=2000)
+matched_data_subset = fuzzy_match_scats_to_traffic_subset(traffic_df, scats_df, threshold=80, traffic_sample_size=500, scats_sample_size=500)
 
 
 matched_df_subset = pd.DataFrame(matched_data_subset)
 
-matched_df_subset.to_csv('data/vic/NewData/TestMainCSV.csv', index=False)
+matched_df_subset.to_csv('TestMainCSV.csv', index=False)
 
 print("Saved as 'TestMainCSV.csv'")
