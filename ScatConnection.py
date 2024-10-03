@@ -2,6 +2,9 @@ import pandas as pd
 from tqdm import tqdm
 from fuzzywuzzy import fuzz
 
+traffic_df = pd.read_csv('data/vic/Traffic_Count_Locations_with_LONG_LAT.csv')
+scats_df = pd.read_csv('data/vic/SCATS_SiteDefinition.csv')
+
 abbreviations = {
     'nr': 'near',
     'rd': 'road',
@@ -61,9 +64,6 @@ def calculate_zero_aadt_percentage(traffic_df):
     percentage_zero_aadt = (zero_aadt_rows / total_rows) * 100
     return percentage_zero_aadt
 
-
-traffic_df = pd.read_csv('data/vic/Traffic_Count_Locations_with_LONG_LAT.csv')
-scats_df = pd.read_csv('data/vic/SCATS_SiteDefinition.csv')
 
 
 #updated_scats_df = fuzzy_match_scats_to_traffic(traffic_df, scats_df, threshold=80)
