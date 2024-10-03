@@ -2,8 +2,8 @@ import pandas as pd
 from tqdm import tqdm
 from fuzzywuzzy import fuzz
 
-traffic_df = pd.read_csv('data/vic/Traffic_Count_Locations_with_LONG_LAT.csv')
-scats_df = pd.read_csv('data/vic/SCATS_SiteDefinition.csv')
+traffic_df = pd.read_csv('data/vic/NewData/Filtered_Traffic_Count_Locations.csv')
+scats_df = pd.read_csv('data/vic/NewData/SCATS_SiteDefinition.csv')
 
 abbreviations = {
     'nr': 'near',
@@ -17,62 +17,59 @@ abbreviations = {
     'pl': 'place',
     'crt': 'court',
     'dr': 'drive',
-    'bd': '',
+    'bd': '',  
 }
 
-#function to normalize a description by expanding abbreviations
 def normalize_description(desc):
     desc = desc.lower().strip()
     for abbr, full in abbreviations.items():
         desc = desc.replace(f' {abbr} ', f' {full} ')
     return desc
 
-#fuzzy matching function
-def fuzzy_match_scats_to_traffic(traffic_df, scats_df, threshold=80):
-    scats_df['LATITUDE'] = None
-    scats_df['LONGITUDE'] = None
+# Function to perform fuzzy matching with a subset
+def fuzzy_match_scats_to_traffic_subset(traffic_df, scats_df, threshold=80, traffic_sample_size=2000, scats_sample_size=2000):
+    # Select a sample of rows from the original datasets for testing
+    traffic_sample = traffic_df.sample(n=traffic_sample_size, random_state=1)
+    scats_sample = scats_df.sample(n=scats_sample_size, random_state=1)
+    output_rows = []
 
-    # Combine TFM_DESC and SITE_DESC for a more complete description
-    traffic_df['FULL_DESC'] = traffic_df['TFM_DESC'].fillna('') + " " + traffic_df['SITE_DESC'].fillna('')
+    traffic_sample['FULL_DESC'] = traffic_sample['TFM_DESC'].fillna('') + " " + traffic_sample['SITE_DESC'].fillna('')
 
-    #Init tqdm
-    for scats_index, scats_row in tqdm(scats_df.iterrows(), total=len(scats_df), desc="Matching SCATS to Traffic"):
+    for scats_index, scats_row in tqdm(scats_sample.iterrows(), total=len(scats_sample), desc="Matching SCATS to Traffic Subset"):
         scats_desc = normalize_description(scats_row['LOCATION_DESCRIPTION'])
         best_score = 0
         best_match = None
 
-        # Loop through traffic data to find the best fuzzy match
-        for index, row in traffic_df.iterrows():
+        for index, row in traffic_sample.iterrows():
             site_desc = normalize_description(row['FULL_DESC'])
-            score = fuzz.partial_ratio(scats_desc, site_desc)  #fuzzy match score
+            score = fuzz.partial_ratio(scats_desc, site_desc)  # Fuzzy match score
 
             if score > best_score:
                 best_score = score
                 best_match = row
 
-        
+
         if best_score >= threshold and best_match is not None:
-            scats_df.at[scats_index, 'LATITUDE'] = best_match['LATITUDE']
-            scats_df.at[scats_index, 'LONGITUDE'] = best_match['LONGITUDE']
+            output_row = {
+                'LONG': best_match['LONGITUDE'],
+                'LAT': best_match['LATITUDE'],
+                'SCATS_ID': scats_row['SITE_NUMBER'],
+                'NAME': scats_row['LOCATION_DESCRIPTION'],
+                'MAP_REFERENCE': scats_row['MAP_REFERENCE'],
+                'TYPE_OF_ROAD': best_match['TFM_TYP_DE'],
+                'SPEED_LIMIT': 'N/A',
+                'NUMBER_OF_LANES': 'N/A',
+                'AADT': best_match['AADT_ALL_VEHICLES'], 
+            }
+            output_rows.append(output_row)
 
-    return scats_df
+    return output_rows
 
-#optional
-def calculate_zero_aadt_percentage(traffic_df):
-    total_rows = len(traffic_df)
-    zero_aadt_rows = len(traffic_df[traffic_df['AADT_ALL_VEHICLES'] == 0])
-    percentage_zero_aadt = (zero_aadt_rows / total_rows) * 100
-    return percentage_zero_aadt
-
-
-
-#updated_scats_df = fuzzy_match_scats_to_traffic(traffic_df, scats_df, threshold=80)
-
-#zero AADT_ALL_VEHICLES amount
-zero_aadt_percentage = calculate_zero_aadt_percentage(traffic_df)
-print(f"Percentage of rows with AADT_ALL_VEHICLES = 0: {zero_aadt_percentage:.2f}%")
+matched_data_subset = fuzzy_match_scats_to_traffic_subset(traffic_df, scats_df, threshold=80, traffic_sample_size=2000, scats_sample_size=2000)
 
 
-#updated_scats_df.to_csv('ScatsLatLong.csv', index=False)
+matched_df_subset = pd.DataFrame(matched_data_subset)
 
-#print("Saved as 'ScatsLatLong.csv'")
+matched_df_subset.to_csv('data/vic/NewData/TestMainCSV.csv', index=False)
+
+print("Saved as 'TestMainCSV.csv'")
