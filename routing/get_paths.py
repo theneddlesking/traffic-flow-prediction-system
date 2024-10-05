@@ -80,7 +80,10 @@ def get_neighbours_of_location(location: dict, all_locations: list[dict]) -> lis
 
     direction = get_direction_from_location_name(name)
 
+    # go through all other locations and check if they are on the same street
     for other_location in other_locations:
+
+        # get streets of other location
         streets = get_streets_from_location_name(other_location["name"])
 
         for street in streets:
@@ -90,10 +93,7 @@ def get_neighbours_of_location(location: dict, all_locations: list[dict]) -> lis
 
             other_direction = get_direction_from_location_name(other_location["name"])
 
-            if (
-                other_direction == get_opposite_direction(direction)
-                or other_direction == direction
-            ):
+            if other_direction == get_opposite_direction(direction):
                 neighbours.append(other_location["location_id"])
 
     # add some neighbours from same scat in case they don't have the same street name
