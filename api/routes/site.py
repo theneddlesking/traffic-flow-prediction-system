@@ -2,14 +2,14 @@
 
 from fastapi import APIRouter
 
-from db.site import get_location, get_locations
+from db.site import get_flow, get_location, get_locations
 
 router = APIRouter()
 
 
 # from location and time of day return the flow
 @router.get("/flow")
-async def get_flow(location_id: int, time: str):
+async def get_flow_route(location_id: int, time: str):
     """Get flow"""
 
     flow = await get_flow(location_id, time)

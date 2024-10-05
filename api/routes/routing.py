@@ -28,20 +28,29 @@ async def get_route(start_location_id: int, end_location_id: int, time_of_day: s
 
     path = a_star(graph, start, goal, heuristic)
 
+    if path is None:
+        return {
+            "error": "No path found. Could be because the start or end location is invalid."
+        }
+
     all_locations = await get_locations()
 
     path_ids = [node.location_id for node in path]
 
     path_locations = []
 
-    for location in all_locations:
-        if location["location_id"] in path_ids:
-            path_locations.append(location)
+    for path_id in path_ids:
+        for location in all_locations:
+            if location["location_id"] == path_id:
+                path_locations.append(location)
 
     time_taken = sum([node.g for node in path])
 
     start = path_locations[0]
     goal = path_locations[-1]
+
+    print("goat")
+    print(path_locations)
 
     return {
         "waypoints": path_locations,
