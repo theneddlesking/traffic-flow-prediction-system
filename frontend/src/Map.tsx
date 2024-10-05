@@ -4,7 +4,6 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
 import './App.css';
-import MapRouting from './MapRouting';
 
 import MapSidebar from './MapSidebar';
 import type { Location } from './types';
@@ -18,37 +17,14 @@ type RoutingResponse = {
 
 
 function Map() {
-  const [mapInit, setMapInit] = useState(false);
   const [locations, setLocations] = useState<Location[]>([]);
   const [startPoint, setStartPoint] = useState<Location | null>(null);
   const [endPoint, setEndPoint] = useState<Location | null>(null);
   const [waypoints, setWaypoints] = useState<Location[]>([]);
 
+
   const [timeOfDay, setTimeOfDay] = useState('12:00');
 
-  const roadSegments = [
-    [
-      [141.587093, -38.34681],
-      [141.58711, -38.34604]
-    ],
-    [
-      [141.58711, -38.34604],
-      [141.587122, -38.345727]
-    ],
-    [
-      [141.587122, -38.345727],
-      [141.587134, -38.345126],
-      [141.587166, -38.34433]
-    ]
-  ];
-
-  const flippedRoadSegements = roadSegments.map(segment => {
-    return segment.map(point => {
-      return [point[1], point[0]];
-    });
-  });
-
-  const allPoints = roadSegments.flat();
 
   const generateRoute = async (possibleEndPoint?: Location) => {
 
@@ -88,6 +64,9 @@ function Map() {
         const latOffset = 0.00151;
         const longOffset = 0.0013;
 
+        console.log("original locations");
+        console.log(locations.data.locations);
+
         // for some reason the long lat is slightly off
         locations.data.locations.forEach(location => {
           location.lat += latOffset;
@@ -116,11 +95,6 @@ function Map() {
     iconSize: [15, 15]
   });
 
-  const saveMap = (map: unknown) => {
-    if (map) {
-      setMapInit(true);
-    }
-  };
 
   const setStartPointAndFetchTraffic = async (location: Location | null) => {
     setStartPoint(location);
@@ -152,12 +126,32 @@ function Map() {
     }
   };
 
+  const waypointCoordinates = getLineSegments(waypoints);
+
+  function getLineSegments(waypoints: Location[]) {
+    const segments = [];
+
+    console.log('waypoints');
+    console.log(waypoints);
+
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      const start = waypoints[i];
+      const end = waypoints[i + 1];
+
+      segments.push([[start.lat, start.long], [end.lat, end.long]]);
+    }
+
+    console.log('segments');
+    console.log(segments);
+
+    return segments;
+  }
 
   return (
     <div className='map-container'>
       <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} locations={locations} />
 
-      <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true} ref={saveMap}>
+      <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
         <TileLayer
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
@@ -198,21 +192,8 @@ function Map() {
             </Marker>
         ))}
 
-        <Polyline positions={flippedRoadSegements} pathOptions={{color: "blue"}} />    
-
-        {flippedRoadSegements.flat().map(([lat, lng], index) => (
-        <Marker key={index} position={[lat, lng]} icon={dotIcon}>
-          <Popup>
-            Lat: {lat}, Lng: {lng}
-          </Popup>
-        </Marker>
-      ))}
-
-
-
-        {mapInit && startPoint && endPoint && (
-          <MapRouting waypoints={waypoints} />
-        )}
+      {/* draws the route */}
+      <Polyline positions={waypointCoordinates} pathOptions={{color: "blue"}} />    
 
       </MapContainer>
       <div className='padding-div' />
