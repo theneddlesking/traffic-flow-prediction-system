@@ -37,7 +37,7 @@ def fuzzy_match_scats_to_traffic(traffic_df, scats_df, laneNum_df, threshold=80)
         site_desc = normalize_description(row['SITE_DESC'])
 
         #look for matching rows in the Road Width data
-        lane_match = laneNum_df[(laneNum_df['ROAD_NBR'] == road_nbr) & (laneNum_df['ROAD_NAME'].str.contains(declared_road, case=False, na=False))]
+        lane_match = laneNum_df[(laneNum_df['ROAD_NBR'] == road_nbr) & (laneNum_df['ROAD_NAME'].str.contains(declared_road, case=False, na=False, regex=False))]
         number_of_lanes = lane_match.iloc[0]['NUMBER_OF_TRAFFIC_LANES'] if not lane_match.empty else 'N/A'
 
         #look for matching rows in the SCATS data
