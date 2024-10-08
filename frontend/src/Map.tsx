@@ -126,6 +126,15 @@ function Map() {
     }
   };
 
+  function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+
   const waypointCoordinates = getLineSegments(waypoints);
 
   function getLineSegments(waypoints: Location[]) {
@@ -193,7 +202,12 @@ function Map() {
         ))}
 
       {/* draws the route */}
-      <Polyline positions={waypointCoordinates} pathOptions={{color: "blue"}} />    
+      {/* <Polyline positions={waypointCoordinates} pathOptions={{color: getRandomColor() }} />     */}
+      {
+        waypointCoordinates.map((segment, index) => (
+          <Polyline key={index} positions={segment} pathOptions={{color: getRandomColor() }} />
+        ))
+      }
 
       </MapContainer>
       <div className='padding-div' />
