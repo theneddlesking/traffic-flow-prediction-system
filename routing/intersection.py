@@ -1,3 +1,4 @@
+from routing.haversine import haversine
 from routing.point import RoutingPoint
 
 
@@ -18,9 +19,22 @@ class Intersection:
         self.street_names = street_names
         self.points = points
 
+    def get_position(self):
+        """Get the position of the intersection."""
         # calculate the average lat and long of the intersection
-        self.lat = sum(point.lat for point in points) / len(points)
-        self.long = sum(point.long for point in points) / len(points)
+        lat = sum(point.lat for point in self.points) / len(self.points)
+        long = sum(point.long for point in self.points) / len(self.points)
+        return lat, long
+
+    def is_close_to(self, point: RoutingPoint, epilson: float = 0.05):
+        """Check if a point is close to the intersection.  /
+        Where epilson is the maximum distance between the point and the intersection in kilometres.
+        """
+        lat, long = self.get_position()
+
+        point_lat, point_long = point.lat, point.long
+
+        return haversine(lat, long, point_lat, point_long) <= epilson
 
     def add_point(self, point: RoutingPoint):
         """Add a point to the intersection."""

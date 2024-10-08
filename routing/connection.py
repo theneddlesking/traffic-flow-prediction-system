@@ -1,3 +1,5 @@
+from routing.direction import Direction
+from routing.haversine import haversine
 from routing.intersection import Intersection
 from routing.point import RoutingPoint
 
@@ -17,15 +19,55 @@ class IntersectionConnection:
         self.along_street = along_street
         self.speed_limit = speed_limit
 
+        # what direction is the connection
+        self.direction = self.get_connection_direction()
+
         if self.intersection.shares_points(self.other_intersection):
             points1 = [point.location_id for point in self.intersection.points]
             points2 = [point.location_id for point in self.other_intersection.points]
-            raise ValueError(
-                f"Intersections {self.intersection} and {self.other_intersection} share points. They should be independent. {points1} {points2}"
+
+            # raise a warning not an error because this is not a critical issue
+            # but it is a potential issue
+            print(
+                f"Warning: The intersections {points1} and {points2} share points. This is not ideal."
             )
 
         # NOTE: It is extremely likely that there will be more than one point that connects the two intersections
         self.point_map = self.map_points()
+
+    def get_connection_direction(self) -> Direction:
+        """Get the direction of the connection between the two intersections."""
+
+        vertical_dist = haversine(
+            self.intersection.get_position()[0],
+            self.intersection.get_position()[1],
+            self.other_intersection.get_position()[0],
+            self.intersection.get_position()[1],
+        )
+
+        horizontal_dist = haversine(
+            self.intersection.get_position()[0],
+            self.intersection.get_position()[1],
+            self.intersection.get_position()[0],
+            self.other_intersection.get_position()[1],
+        )
+
+        # check orientation of the connection
+
+        if vertical_dist > horizontal_dist:
+            return (
+                Direction("N")
+                if self.intersection.get_position()[0]
+                < self.other_intersection.get_position()[0]
+                else Direction("S")
+            )
+
+        return (
+            Direction("E")
+            if self.intersection.get_position()[1]
+            < self.other_intersection.get_position()[1]
+            else Direction("W")
+        )
 
     def map_points(self) -> dict[RoutingPoint, RoutingPoint]:
         """Map the points of the intersection to the points of the other intersection along the street connecting them."""
@@ -57,8 +99,15 @@ class IntersectionConnection:
         # because if you travel North up a road, you expect to be at the South end of the road
         # this is not always the case, but it is a reasonable assumption
 
+        road_direction = self.direction
+
+        print(
+            f"Road direction: {road_direction} from {self.intersection} to {self.other_intersection}"
+        )
+
+        direction = road_direction
+
         for point in points1:
-            direction = point.direction
             opposite_direction = direction.get_opposite_direction()
 
             best_point = None
@@ -90,3 +139,9 @@ class IntersectionConnection:
                 point_map[best_point] = point
 
         return point_map
+
+    def __str__(self):
+        return f"IntersectionConnection({self.intersection}, {self.other_intersection}, {self.along_street} {self.direction})"
+
+    def __repr__(self):
+        return str(self)

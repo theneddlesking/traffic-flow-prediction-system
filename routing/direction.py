@@ -28,5 +28,11 @@ class Direction:
 
         return Direction(get_opposite_str(self.value))
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Direction"):
         return self.value == other.value
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value

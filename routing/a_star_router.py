@@ -12,7 +12,8 @@ class AStarRouter(Router):
     ) -> list[RoutingPoint]:
         """Find the shortest route between two RoutingPoints using the A* algorithm."""
 
-        def heuristic(a, b):
+        def heuristic(point1: RoutingPoint, point2: RoutingPoint) -> int:
+            """Calculate the heuristic cost between two points."""
             return 0
 
         path = a_star(network.network, start, end, heuristic)

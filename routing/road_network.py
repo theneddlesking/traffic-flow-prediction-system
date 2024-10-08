@@ -75,13 +75,21 @@ class RoadNetwork:
                 intersection: Intersection
                 intersection.add_point(point)
 
+        # now add points that are very close to each other to the same intersection
+        # this could be because of a road changing names, or a road splitting and then rejoining
+
+        for point in self.points:
+            for intersection in intersections.values():
+                if intersection.is_close_to(point):
+                    intersection.add_point(point)
+
         return intersections
 
     def find_connections(
         self, intersections: dict[str, Intersection]
     ) -> set[IntersectionConnection]:
         """Find all the connections between intersections."""
-        connections = set()
+        connections: set[IntersectionConnection] = set()
 
         for intersection in intersections.values():
             for other_intersection in intersections.values():
@@ -92,13 +100,16 @@ class RoadNetwork:
 
                 for point in intersection.points:
                     for other_point in other_intersection.points:
+
+                        # we found another intersection at this street
                         if point.street_name == other_point.street_name:
-                            connections.add(
-                                IntersectionConnection(
-                                    intersection=intersection,
-                                    other_intersection=other_intersection,
-                                    along_street=point.street_name,
-                                )
+
+                            connection = IntersectionConnection(
+                                intersection,
+                                other_intersection,
+                                point.street_name,
                             )
+
+                            connections.add(connection)
 
         return connections

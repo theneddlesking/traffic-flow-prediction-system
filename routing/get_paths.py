@@ -28,11 +28,12 @@ async def create_graph(
     network = RoadNetwork(routing_points)
 
     print("Network created")
-    pprint(network.network)
 
     point_graph = network.network_by_id
 
     print("Street lookup created")
+
+    pprint(len(network.connections))
 
     time_graph = {}
 
