@@ -88,3 +88,9 @@ class RoutingPoint:
 
     def __hash__(self):
         return self.location_id
+
+    def __str__(self):
+        return f"RoutingPoint({self.location_id}, {self.street_name}, {self.other_street_name})"
+
+    def __repr__(self):
+        return self.__str__()

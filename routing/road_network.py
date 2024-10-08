@@ -17,11 +17,13 @@ class RoadNetwork:
 
     def build_network(
         self, connections: list[IntersectionConnection]
-    ) -> tuple[dict[RoutingPoint, list[RoutingPoint]], dict[int, list[int]]]:
+    ) -> tuple[dict[RoutingPoint, set[RoutingPoint]], dict[int, set[int]]]:
         """Build the road network."""
 
         network = {}
         network_by_id = {}
+
+        # add connections between intersections
 
         for connection in connections:
             mapping = connection.point_map
@@ -33,6 +35,24 @@ class RoadNetwork:
 
                 network[point1].add(point2)
                 network_by_id[point1.location_id].add(point2.location_id)
+
+        # add connections within intersections
+
+        for intersection in self.intersections.values():
+
+            for point in intersection.points:
+                if point not in network:
+                    network[point] = set()
+                    network_by_id[point.location_id] = set()
+
+                for other_point in intersection.points:
+
+                    # same intersection
+                    if point == other_point:
+                        continue
+
+                    network[point].add(other_point)
+                    network_by_id[point.location_id].add(other_point.location_id)
 
         return network, network_by_id
 

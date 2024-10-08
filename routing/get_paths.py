@@ -1,6 +1,7 @@
 # gets the paths
 
 
+from pprint import pprint
 from db.site import get_locations
 from routing.path_costs import get_hours_taken_between_points
 from routing.point import RoutingPoint
@@ -26,33 +27,24 @@ async def create_graph(
 
     network = RoadNetwork(routing_points)
 
+    print("Network created")
+    pprint(network.network)
+
     point_graph = network.network_by_id
 
     print("Street lookup created")
 
+    time_graph = {}
+
     for key, value in point_graph.items():
-        print(key, value)
 
-    # for location in all_locations:
-    #     neighbours_on_same_street = street_lookup[
-    #         get_street_name_from_location_name(location["name"])
-    #     ]
+        time_graph[key] = {}
 
-    #     location_id = location["location_id"]
+        for neighbour in value:
+            hours_taken = await get_hours_taken_between_points(
+                key, neighbour, speed_limit, alpha, time_of_day
+            )
 
-    #     key = location_id
+            time_graph[key][neighbour] = hours_taken
 
-    #     graph[key] = {}
-
-    #     for neighbour in neighbours_on_same_street:
-    #         hours_taken = await get_hours_taken_between_points(
-    #             location_id, neighbour, speed_limit, alpha, time_of_day
-    #         )
-
-    #         # add to cache
-
-    #         graph[key][neighbour] = hours_taken
-
-    print("Graph created")
-
-    return point_graph
+    return time_graph
