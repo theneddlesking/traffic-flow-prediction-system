@@ -1,4 +1,5 @@
 from routing.direction import Direction
+from routing.haversine import haversine
 
 
 class RoutingPoint:
@@ -83,7 +84,11 @@ class RoutingPoint:
 
         return None
 
-    def __eq__(self, other):
+    def distance_to(self, other: "RoutingPoint") -> float:
+        """Get the distance to another RoutingPoint."""
+        return haversine(self.lat, self.long, other.lat, other.long)
+
+    def __eq__(self, other: "RoutingPoint"):
         return self.location_id == other.location_id
 
     def __hash__(self):

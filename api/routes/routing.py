@@ -3,8 +3,11 @@
 from fastapi import APIRouter
 
 from db.site import get_locations
-from routing.astar import a_star
-from routing.get_paths import create_graph
+from routing.a_star_router import AStarRouter
+from routing.basic_mfd import BasicMFD
+from routing.mfd_time_estimator import MFDTimeEstimator
+from routing.point import RoutingPoint
+from routing.road_network import RoadNetwork
 
 router = APIRouter()
 
@@ -14,45 +17,27 @@ router = APIRouter()
 async def get_route(start_location_id: int, end_location_id: int, time_of_day: str):
     # TODO add some caching logic
 
-    def heuristic(a, b):
-        return 0
+    astar_router = AStarRouter(MFDTimeEstimator(BasicMFD))
 
-    SPEED_LIMIT = 60
+    locations = await get_locations()
 
-    ALPHA = 1
+    routing_points = [
+        RoutingPoint.from_raw_location_data(location) for location in locations
+    ]
 
-    graph = await create_graph(SPEED_LIMIT, time_of_day, ALPHA)
+    network = RoadNetwork(routing_points)
 
-    start = start_location_id
-    goal = end_location_id
+    start = network.points_dict[start_location_id]
+    goal = network.points_dict[end_location_id]
 
-    path = a_star(graph, start, goal, heuristic)
+    path, time_taken = await astar_router.find_route(start, goal, time_of_day, network)
 
     if path is None:
         return {
             "error": "No path found. Could be because the start or end location is invalid."
         }
 
-    all_locations = await get_locations()
-
-    path_ids = [node.location_id for node in path]
-
-    path_locations = []
-
-    for path_id in path_ids:
-        for location in all_locations:
-            if location["location_id"] == path_id:
-                path_locations.append(location)
-
-    time_taken = sum([node.g for node in path])
-
-    start = path_locations[0]
-    goal = path_locations[-1]
-
-    print("goat")
-    print(path_locations)
-
     return {
-        "waypoints": path_locations,
+        "waypoints": path,
         "hours_taken": time_taken,
     }
