@@ -6,9 +6,6 @@ traffic_df = pd.read_csv('Filtered_Traffic_Count_Locations.csv')
 scats_df = pd.read_csv('ScatsLatLong.csv')
 laneNum_df = pd.read_csv('Road_Width_and_Number_of_Lanes.csv')
 
-#select subnet amount for testing
-#traffic_df = traffic_df.sample(n=5000, random_state=1)
-
 abbreviations = { 
     'nr': 'near',
     'rd': 'road',
@@ -88,6 +85,6 @@ def fuzzy_match_scats_to_traffic(traffic_df, scats_df, laneNum_df, threshold=80)
 matched_data = fuzzy_match_scats_to_traffic(traffic_df, scats_df, laneNum_df, threshold=80)
 
 matched_df = pd.DataFrame(matched_data)
-matched_df.to_csv('ImprovedCSV_subset.csv', index=False)
+matched_df.to_csv('MainCSV.csv', index=False)
 
-print("Saved as 'ImprovedCSV_subset.csv'")
+print("Saved as 'MainCSV.csv'")
