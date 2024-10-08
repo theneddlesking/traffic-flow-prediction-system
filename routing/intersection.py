@@ -18,6 +18,10 @@ class Intersection:
         self.street_names = street_names
         self.points = points
 
+        # calculate the average lat and long of the intersection
+        self.lat = sum(point.lat for point in points) / len(points)
+        self.long = sum(point.long for point in points) / len(points)
+
     def add_point(self, point: RoutingPoint):
         """Add a point to the intersection."""
         self.points.append(point)

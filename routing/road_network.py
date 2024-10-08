@@ -79,9 +79,9 @@ class RoadNetwork:
 
     def find_connections(
         self, intersections: dict[str, Intersection]
-    ) -> list[IntersectionConnection]:
+    ) -> set[IntersectionConnection]:
         """Find all the connections between intersections."""
-        connections = []
+        connections = set()
 
         for intersection in intersections.values():
             for other_intersection in intersections.values():
@@ -93,7 +93,7 @@ class RoadNetwork:
                 for point in intersection.points:
                     for other_point in other_intersection.points:
                         if point.street_name == other_point.street_name:
-                            connections.append(
+                            connections.add(
                                 IntersectionConnection(
                                     intersection=intersection,
                                     other_intersection=other_intersection,
