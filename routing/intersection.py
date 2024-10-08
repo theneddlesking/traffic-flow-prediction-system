@@ -19,6 +19,8 @@ class Intersection:
         self.street_names = street_names
         self.points = points
 
+        self.lat, self.long = self.get_position()
+
     def get_position(self):
         """Get the position of the intersection."""
         # calculate the average lat and long of the intersection
@@ -39,6 +41,9 @@ class Intersection:
     def add_point(self, point: RoutingPoint):
         """Add a point to the intersection."""
         self.points.append(point)
+
+        # update position
+        self.lat, self.long = self.get_position()
 
     def shares_points(self, other_intersection: "Intersection") -> bool:
         """Check if two intersections share points."""
