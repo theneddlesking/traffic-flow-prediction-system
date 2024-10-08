@@ -18,13 +18,13 @@ from keras.callbacks import EarlyStopping
 warnings.filterwarnings("ignore")
 
 
-def train_model(model, X_train, y_train, name, config, root, location):
+def train_model(model, x_train, y_train, name, config, root, location):
     """train
     train a single model.
 
     # Arguments
         model: Model, NN model to train.
-        X_train: ndarray(number, lags), Input data for train.
+        x_train: ndarray(number, lags), Input data for train.
         y_train: ndarray(number, ), result data for train.
         name: String, name of model.
         config: Dict, parameter for train.
@@ -33,7 +33,7 @@ def train_model(model, X_train, y_train, name, config, root, location):
     model.compile(loss="mse", optimizer="rmsprop", metrics=["mape"])
     # early = EarlyStopping(monitor='val_loss', patience=30, verbose=0, mode='auto')
     hist = model.fit(
-        X_train,
+        x_train,
         y_train,
         batch_size=config["batch"],
         epochs=config["epochs"],
@@ -51,19 +51,19 @@ def train_model(model, X_train, y_train, name, config, root, location):
     )
 
 
-def train_saes(models, X_train, y_train, name, config, root, location):
+def train_saes(models, x_train, y_train, name, config, root, location):
     """train
     train the SAEs model.
 
     # Arguments
         models: List, list of SAE model.
-        X_train: ndarray(number, lags), Input data for train.
+        x_train: ndarray(number, lags), Input data for train.
         y_train: ndarray(number, ), result data for train.
         name: String, name of model.
         config: Dict, parameter for train.
     """
 
-    temp = X_train
+    temp = x_train
     # early = EarlyStopping(monitor='val_loss', patience=30, verbose=0, mode='auto')
 
     for i in range(len(models) - 1):
@@ -93,7 +93,7 @@ def train_saes(models, X_train, y_train, name, config, root, location):
         weights = models[i].get_layer("hidden").get_weights()
         saes.get_layer("hidden%d" % (i + 1)).set_weights(weights)
 
-    train_model(saes, X_train, y_train, name, config, root, location)
+    train_model(saes, x_train, y_train, name, config, root, location)
 
 
 def is_colab():

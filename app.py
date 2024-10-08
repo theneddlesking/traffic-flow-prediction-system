@@ -62,4 +62,4 @@ async def main_api():
 
 
 # to run this api from the main directory:
-# uvicorn test_api:app --reload
+# uvicorn app:app --reload
