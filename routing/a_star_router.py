@@ -7,16 +7,27 @@ from routing.router import Router
 class AStarRouter(Router):
     """A router that uses the A* algorithm to find the shortest path between two RoutingPoints."""
 
-    def find_route(
-        self, start: RoutingPoint, end: RoutingPoint, network: RoadNetwork
-    ) -> list[RoutingPoint]:
+    async def find_route(
+        self,
+        start: RoutingPoint,
+        end: RoutingPoint,
+        time_of_day: str,
+        network: RoadNetwork,
+    ) -> tuple[list[RoutingPoint], int]:
         """Find the shortest route between two RoutingPoints using the A* algorithm."""
 
         def heuristic(point1: RoutingPoint, point2: RoutingPoint) -> int:
             """Calculate the heuristic cost between two points."""
             return 0
 
-        path = a_star(network.network, start, end, heuristic)
+        time_graph = await self.create_graph(time_of_day, network)
 
-        for node in path:
-            print(node.location_id)
+        path = a_star(time_graph, start.location_id, end.location_id, heuristic)
+
+        path_points: list[RoutingPoint] = [
+            network.points_dict[node.location_id] for node in path
+        ]
+
+        time_taken = sum([node.g for node in path])
+
+        return path_points, time_taken

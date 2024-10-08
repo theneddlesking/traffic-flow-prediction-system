@@ -9,6 +9,8 @@ class RoadNetwork:
     def __init__(self, routing_points: list[RoutingPoint]):
         self.points = routing_points
 
+        self.points_dict = {point.location_id: point for point in self.points}
+
         self.intersections = self.find_intersections()
         self.connections = self.find_connections(self.intersections)
 
