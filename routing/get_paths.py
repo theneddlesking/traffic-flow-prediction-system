@@ -3,34 +3,8 @@
 
 from db.site import get_locations
 from routing.path_costs import get_hours_taken_between_points
-
-
-def get_streets_from_location_name(location_name: str) -> list[str]:
-    words = location_name.split(" ")
-
-    return [word for word in words if "_" in word]
-
-
-def get_neighbours_of_location(location: dict, all_locations: list[dict]) -> list[int]:
-    # get name of location
-
-    name = location["name"]
-
-    neighbouring_streets = get_streets_from_location_name(name)
-
-    neighbours = []
-
-    other_locations = all_locations.copy()
-
-    other_locations.remove(location)
-
-    for other_location in other_locations:
-        streets = get_streets_from_location_name(other_location["name"])
-
-        if any(street in streets for street in neighbouring_streets):
-            neighbours.append(other_location["location_id"])
-
-    return neighbours
+from routing.point import RoutingPoint
+from routing.road_network import RoadNetwork
 
 
 async def create_graph(
@@ -38,26 +12,47 @@ async def create_graph(
     time_of_day: int,
     alpha: int,
 ) -> dict[int, dict[int, int]]:
-    graph = {}
+    point_graph = {}
+
+    print("Getting all locations")
 
     all_locations = await get_locations()
 
-    for location in all_locations:
-        neighbours = get_neighbours_of_location(location, all_locations)
+    print("Creating Graph")
 
-        location_id = location["location_id"]
+    routing_points = [
+        RoutingPoint.from_raw_location_data(location) for location in all_locations
+    ]
 
-        key = location_id
+    network = RoadNetwork(routing_points)
 
-        graph[key] = {}
+    point_graph = network.network_by_id
 
-        for neighbour in neighbours:
-            hours_taken = await get_hours_taken_between_points(
-                location_id, neighbour, speed_limit, alpha, time_of_day
-            )
+    print("Street lookup created")
 
-            # add to cache
+    for key, value in point_graph.items():
+        print(key, value)
 
-            graph[key][neighbour] = hours_taken
+    # for location in all_locations:
+    #     neighbours_on_same_street = street_lookup[
+    #         get_street_name_from_location_name(location["name"])
+    #     ]
 
-    return graph
+    #     location_id = location["location_id"]
+
+    #     key = location_id
+
+    #     graph[key] = {}
+
+    #     for neighbour in neighbours_on_same_street:
+    #         hours_taken = await get_hours_taken_between_points(
+    #             location_id, neighbour, speed_limit, alpha, time_of_day
+    #         )
+
+    #         # add to cache
+
+    #         graph[key][neighbour] = hours_taken
+
+    print("Graph created")
+
+    return point_graph
