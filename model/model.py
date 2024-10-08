@@ -1,15 +1,27 @@
 """
 Defination of NN model
 """
-import sys
-import warnings
-import argparse
+import math
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from data.data import process_data
 from keras.layers import Dense, Dropout, Activation, LSTM, GRU
 from keras.models import Sequential
+import sklearn.metrics as metrics
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
+HOURS_IN_DAY = 24
+
+MINUTES_IN_HOUR = 60
+
+NUMBER_OF_15_MINUTE_INTERVALS_IN_HOUR = MINUTES_IN_HOUR // 15
+
+# 96 5-minute increments in a day
+NUMBER_OF_15_MINUTE_INTERVALS_IN_DAY = (
+    HOURS_IN_DAY * NUMBER_OF_15_MINUTE_INTERVALS_IN_HOUR
+)
 
 
 class Model:
@@ -217,3 +229,113 @@ class Model:
         # if self.model_type == "saes":
             # x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1]))
             # self.train_saes(x_train, y_train, config, root)
+
+    def MAPE(self, y_true, y_pred):
+        """Mean Absolute Percentage Error
+        Calculate the mape.
+
+        # Arguments
+            y_true: List/ndarray, ture data.
+            y_pred: List/ndarray, predicted data.
+        # Returns
+            mape: Double, result data for train.
+        """
+
+        y = [x for x in y_true if x > 0]
+        y_pred = [y_pred[i] for i in range(len(y_true)) if y_true[i] > 0]
+
+        num = len(y_pred)
+        sums = 0
+
+        for i in range(num):
+            tmp = abs(y[i] - y_pred[i]) / y[i]
+            sums += tmp
+
+        mape = sums * (100 / num)
+
+        return mape
+
+
+    def eva_regress(self, y_true, y_pred):
+        """Evaluation
+        Evaluate the predicted result.
+
+        # Arguments
+            y_true: List/ndarray, ture data.
+            y_pred: List/ndarray, predicted data.
+        """
+
+        mape = self.MAPE(y_true, y_pred)
+        vs = metrics.explained_variance_score(y_true, y_pred)
+        mae = metrics.mean_absolute_error(y_true, y_pred)
+        mse = metrics.mean_squared_error(y_true, y_pred)
+        r2 = metrics.r2_score(y_true, y_pred)
+        print("explained_variance_score:%f" % vs)
+        print("mape:%f%%" % mape)
+        print("mae:%f" % mae)
+        print("mse:%f" % mse)
+        print("rmse:%f" % math.sqrt(mse))
+        print("r2:%f" % r2)
+
+    def plot_results(self, y_true, y_preds, names, location):
+        """Plot
+        Plot the true data and predicted data.
+
+        # Arguments
+            y_true: List/ndarray, ture data.
+            y_pred: List/ndarray, predicted data.
+            names: List, Method names.
+        """
+        d = "2016-1-1 00:00"
+        x = pd.date_range(d, periods=NUMBER_OF_15_MINUTE_INTERVALS_IN_DAY, freq="15min")
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+
+        ax.plot(x, y_true, label="True Data")
+        for name, y_pred in zip(names, y_preds):
+            ax.plot(x, y_pred, label=name)
+
+        plt.legend()
+        plt.grid(True)
+        plt.xlabel("Time of Day")
+        plt.ylabel("Flow")
+
+        date_format = mpl.dates.DateFormatter("%H:%M")
+        ax.xaxis.set_major_formatter(date_format)
+        fig.autofmt_xdate()
+
+        # save plot
+        plt.savefig("images/vic/" + location + ".png")
+
+    def run(self, save_image=True):
+        lag = 12
+        file1 = "data/vic_test_train/train_" + self.location + ".csv"
+        file2 = "data/vic_test_train/test_" + self.location + ".csv"
+
+        _, _, x_test, y_test, scaler = process_data(file1, file2, lag)
+        y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).reshape(1, -1)[0]
+
+        y_preds = []
+        x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
+        predicted = self.keras_model.predict(x_test)
+        predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
+        y_preds.append(predicted[:NUMBER_OF_15_MINUTE_INTERVALS_IN_DAY])
+        self.eva_regress(y_test, predicted)
+
+        # get predictions for each time interval
+
+        predictions = []
+
+        for i in range(NUMBER_OF_15_MINUTE_INTERVALS_IN_DAY):
+            prediction = []
+            for y_pred in y_preds:
+                prediction.append(y_pred[i])
+            predictions.append(prediction)
+
+        if save_image:
+            self.plot_results(
+                y_test[:NUMBER_OF_15_MINUTE_INTERVALS_IN_DAY], y_preds, self.model_type, self.location
+            )
+
+        return predictions
