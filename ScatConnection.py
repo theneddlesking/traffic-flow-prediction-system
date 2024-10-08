@@ -1,6 +1,6 @@
 import pandas as pd
 from tqdm import tqdm
-from fuzzywuzzy import fuzz
+from rapidfuzz import fuzz
 
 traffic_df = pd.read_csv('Filtered_Traffic_Count_Locations.csv')
 scats_df = pd.read_csv('ScatsLatLong.csv')
