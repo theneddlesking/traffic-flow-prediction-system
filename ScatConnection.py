@@ -2,12 +2,6 @@ import pandas as pd
 from tqdm import tqdm
 from fuzzywuzzy import fuzz
 
-#Values
-traffic_sample_size=1000
-scats_sample_size=1000
-threshold=80
-
-#Load the datasets
 traffic_df = pd.read_csv('Filtered_Traffic_Count_Locations.csv')
 scats_df = pd.read_csv('ScatsLatLong.csv')
 laneNum_df = pd.read_csv('Road_Width_and_Number_of_Lanes.csv')
@@ -33,56 +27,58 @@ def normalize_description(desc):
         desc = desc.replace(f' {abbr} ', f' {full} ')
     return desc
 
-# Function to match SCATS to traffic data and extract lane numbers
-def fuzzy_match_scats_to_traffic_subset(traffic_df, scats_df, laneNum_df, threshold=80):
-    # Select samples from traffic and SCATS data for testing
-    traffic_sample = traffic_df.sample(n=traffic_sample_size, random_state=1)
-    scats_sample = scats_df.sample(n=scats_sample_size, random_state=1)
+
+def fuzzy_match_scats_to_traffic(traffic_df, scats_df, laneNum_df, threshold=80):
     output_rows = []
 
-    # Create a combined description column
-    traffic_sample['FULL_DESC'] = traffic_sample['TFM_DESC'].fillna('') + " " + traffic_sample['SITE_DESC'].fillna('')
+    for index, row in tqdm(traffic_df.iterrows(), total=len(traffic_df), desc="Matching Traffic Data"):
+        road_nbr = row['ROAD_NBR']
+        declared_road = row['DECLARED_ROAD']
+        site_desc = normalize_description(row['SITE_DESC'])
 
-    for scats_index, scats_row in tqdm(scats_sample.iterrows(), total=len(scats_sample), desc="Matching SCATS to Traffic Subset"):
-        scats_desc = normalize_description(scats_row['LOCATION_DESCRIPTION'])
+        #look for matching rows in the Road Width data
+        lane_match = laneNum_df[(laneNum_df['ROAD_NBR'] == road_nbr) & (laneNum_df['ROAD_NAME'].str.contains(declared_road, case=False, na=False))]
+        number_of_lanes = lane_match.iloc[0]['NUMBER_OF_TRAFFIC_LANES'] if not lane_match.empty else 'N/A'
+
+        #look for matching rows in the SCATS data
         best_score = 0
         best_match = None
+        scats_id = 'N/A'
 
-        for index, row in traffic_sample.iterrows():
-            site_desc = normalize_description(row['FULL_DESC'])
-            score = fuzz.partial_ratio(scats_desc, site_desc)  # Fuzzy match score
+        for scats_index, scats_row in scats_df.iterrows():
+            scats_desc = normalize_description(scats_row['LOCATION_DESCRIPTION'])
+            scats_parts = scats_desc.split('/')
 
-            if score > best_score:
-                best_score = score
-                best_match = row
+            #checking if both parts match the traffic SITE_DESC
+            score_parts = [fuzz.partial_ratio(part.strip(), site_desc) for part in scats_parts]
+            min_score = min(score_parts) if score_parts else 0
 
-        number_of_lanes = 'N/A'
-        if best_match is not None:
-            road_nbr = best_match['ROAD_NBR']
-            lane_match = laneNum_df[laneNum_df['ROAD_NBR'] == road_nbr]
-            if not lane_match.empty:
-                number_of_lanes = lane_match.iloc[0]['NUMBER_OF_TRAFFIC_LANES']
+            if min_score > best_score:
+                best_score = min_score
+                best_match = scats_row
 
-       
         if best_score >= threshold and best_match is not None:
-            output_row = {
-                'LONG': best_match['LONGITUDE'],
-                'LAT': best_match['LATITUDE'],
-                'SCATS_ID': scats_row['SITE_NUMBER'],
-                'NAME': scats_row['LOCATION_DESCRIPTION'],
-                'TYPE_OF_ROAD': best_match['TFM_TYP_DE'],
-                'SPEED_LIMIT': 'N/A',
-                'NUMBER_OF_LANES': number_of_lanes,
-                'AADT': best_match['AADT_ALL_VEHICLES'],
-                'ROAD_NUMBER': best_match['ROAD_NBR'],
-            }
-            output_rows.append(output_row)
+            scats_id = best_match['SITE_NUMBER']
+
+        output_row = {
+            'LONG': row['LONGITUDE'],
+            'LAT': row['LATITUDE'],
+            'SCATS_ID': scats_id,
+            'NAME': row['DECLARED_ROAD'],
+            'SITE_DESC': row['SITE_DESC'],
+            'TYPE_OF_ROAD': row['TFM_TYP_DE'],
+            'NUMBER_OF_LANES': number_of_lanes,
+            'AADT': row['AADT_ALL_VEHICLES'],
+            'ROAD_NUMBER': road_nbr,
+            'SPEED_LIMIT': 'N/A',
+        }
+        output_rows.append(output_row)
 
     return output_rows
 
-matched_data_subset = fuzzy_match_scats_to_traffic_subset(traffic_df, scats_df, laneNum_df, threshold=80)
+matched_data = fuzzy_match_scats_to_traffic(traffic_df, scats_df, laneNum_df, threshold=60)
 
-matched_df_subset = pd.DataFrame(matched_data_subset)
-matched_df_subset.to_csv('TestMainCSV.csv', index=False)
+matched_df = pd.DataFrame(matched_data)
+matched_df.to_csv('ImprovedMainCSV.csv', index=False)
 
-print("Saved as 'TestMainCSV.csv'")
+print("Saved as 'ImprovedMainCSV.csv'")
