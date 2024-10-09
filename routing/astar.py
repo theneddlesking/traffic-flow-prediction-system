@@ -1,6 +1,8 @@
 import heapq
 from typing import Callable
 
+from routing.point import RoutingPoint
+
 
 class Node:
     """Node class for A* algorithm"""
@@ -17,11 +19,11 @@ class Node:
 
 
 def a_star(
-    graph: dict[int, dict[int, int]],
-    start: int,
-    goal: int,
-    heuristic: Callable[[int, int], int],
-) -> list[str]:
+    graph: dict[RoutingPoint, dict[RoutingPoint, int]],
+    start: RoutingPoint,
+    goal: RoutingPoint,
+    heuristic: Callable[[RoutingPoint, RoutingPoint], int],
+) -> list[Node]:
     """A* algorithm to find the shortest path between two nodes in a graph."""
 
     open_set = []
