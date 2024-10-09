@@ -13,21 +13,27 @@ class IntersectionConnection:
         other_intersection: Intersection,
         along_street: str,
         speed_limit: int = 60,
+        show_warning: bool = False,
     ):
         self.intersection = intersection
         self.other_intersection = other_intersection
         self.along_street = along_street
         self.speed_limit = speed_limit
 
+        self.show_warning = show_warning
+
         # what direction is the connection
         self.direction = self.get_connection_direction()
 
-        if self.intersection.shares_points(self.other_intersection):
+        if self.show_warning and self.intersection.shares_points(
+            self.other_intersection
+        ):
             points1 = [point.location_id for point in self.intersection.points]
             points2 = [point.location_id for point in self.other_intersection.points]
 
             # raise a warning not an error because this is not a critical issue
             # but it is a potential issue
+
             print(
                 f"Warning: The intersections {points1} and {points2} share points. This is not ideal."
             )
@@ -100,10 +106,6 @@ class IntersectionConnection:
         # this is not always the case, but it is a reasonable assumption
 
         road_direction = self.direction
-
-        print(
-            f"Road direction: {road_direction} from {self.intersection} to {self.other_intersection}"
-        )
 
         direction = road_direction
 

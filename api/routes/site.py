@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from db.site import get_flow, get_location, get_locations
+from db.instance import site_controller, basic_flow_controller
 
 router = APIRouter()
 
@@ -12,7 +12,11 @@ router = APIRouter()
 async def get_flow_route(location_id: int, time: str):
     """Get flow"""
 
-    flow = await get_flow(location_id, time)
+    flow = basic_flow_controller.get_flow(location_id, time)
+
+    if flow is None:
+        # compute flow
+        flow = await basic_flow_controller.compute_flow(location_id, time)
 
     if flow is not None:
         return {"flow": flow}
@@ -26,15 +30,17 @@ async def get_flow_route(location_id: int, time: str):
 @router.get("/locations")
 async def get_locations_route():
     """Get all locations"""
-    return {
-        "locations": await get_locations(),
-    }
+    locations = site_controller.get_locations()
+    return {"locations": locations}
 
 
 # get location
 @router.get("/location")
 async def get_location_route(location_id: int):
     """Get location"""
-    return {
-        "location": await get_location(location_id),
-    }
+    location = site_controller.get_location(location_id)
+
+    if location is not None:
+        return {"location": location}
+
+    return {"error": "Location not found."}

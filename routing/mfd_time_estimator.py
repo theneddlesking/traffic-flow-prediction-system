@@ -1,7 +1,8 @@
-from db.site import get_flow, get_max_flow
 from routing.mfd import MFD
 from routing.point import RoutingPoint
 from routing.time_estimator import TimeEstimator
+
+from db.instance import basic_flow_controller
 
 
 class MFDTimeEstimator(TimeEstimator):
@@ -28,15 +29,28 @@ class MFDTimeEstimator(TimeEstimator):
             # assume that the time taken is 30 seconds for each intersection
             return hours_taken_at_intersection
 
-        start_flow = await get_flow(start.location_id, time_of_day)
-        end_flow = await get_flow(end.location_id, time_of_day)
+        start_flow = basic_flow_controller.get_flow(start.location_id, time_of_day)
+
+        if start_flow is None:
+            # compute flow
+            start_flow = await basic_flow_controller.compute_flow(
+                start.location_id, time_of_day
+            )
+
+        end_flow = basic_flow_controller.get_flow(end.location_id, time_of_day)
+
+        if end_flow is None:
+            # compute flow
+            end_flow = await basic_flow_controller.compute_flow(
+                end.location_id, time_of_day
+            )
 
         # there are a few ways to compute the flow between two points
         # for now we can just use a simple average
         flow = (start_flow + end_flow) / 2
 
-        start_capacity = await get_max_flow(start.location_id)
-        end_capacity = await get_max_flow(end.location_id)
+        start_capacity = basic_flow_controller.get_max_flow(start.location_id)
+        end_capacity = basic_flow_controller.get_max_flow(end.location_id)
 
         # there are a few ways to compute the capacity between two points
         # for now we can just use a simple average

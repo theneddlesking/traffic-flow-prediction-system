@@ -4,9 +4,11 @@ from fastapi.staticfiles import StaticFiles
 
 from api.fix_dist import fix_dist
 from api.routes.site import router as site_router
-from api.routes.routing import router as routing_router
-from main import main
+from api.routes.route import router as routing_router
 import sys
+
+from db.db import SQLiteDB
+from db.site_model import SiteModel
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -41,24 +43,6 @@ fix_dist(APP_DIR)
 
 # serve static files from the build directory
 app.mount(APP_DIR, StaticFiles(directory="./frontend/dist", html=True), name="static")
-
-
-@app.get("/api/hello")
-async def read_root():
-    return {"message": "Hello from FastAPI"}
-
-
-@app.get("/api/add")
-async def add_numbers(a: int, b: int):
-    result = a + b
-    return {"result": result}
-
-
-# TODO this for testing only
-@app.get("/api/main")
-async def main_api():
-    print("Hello from API")
-    return main()
 
 
 # to run this api from the main directory:
