@@ -1,4 +1,5 @@
 from routing.astar import a_star
+from routing.heuristics import Heuristics
 from routing.point import RoutingPoint
 from routing.road_network import RoadNetwork
 from routing.router import Router
@@ -16,13 +17,14 @@ class AStarRouter(Router):
     ) -> tuple[list[RoutingPoint], int]:
         """Find the shortest route between two RoutingPoints using the A* algorithm."""
 
-        def heuristic(point1: RoutingPoint, point2: RoutingPoint) -> int:
-            """Calculate the heuristic cost between two points."""
-            return 0
-
         time_graph = await self.create_graph(time_of_day, network)
 
-        path = a_star(time_graph, start.location_id, end.location_id, heuristic)
+        path = a_star(
+            time_graph, start.location_id, end.location_id, Heuristics.no_heuristic
+        )
+
+        if path is None:
+            return None, 0
 
         path_points: list[RoutingPoint] = [
             network.points_dict[node.location_id] for node in path

@@ -1,12 +1,13 @@
+import sys
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from api.fix_dist import fix_dist
 from api.routes.site import router as site_router
-from api.routes.routing import router as routing_router
-from main import main
-import sys
+from api.routes.route import router as routing_router
+
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -18,12 +19,13 @@ app.include_router(site_router, prefix="/site")
 # use routing router
 app.include_router(routing_router, prefix="/routing")
 
+DEV_URL = "http://localhost:5173"
+BUILD_URL = "http://localhost:8000"
+
 # allow CORS for frontend's origin
 origins = [
-    # dev
-    "http://localhost:5173",
-    # build
-    "http://localhost:8000",
+    DEV_URL,
+    BUILD_URL,
 ]
 
 app.add_middleware(
@@ -41,24 +43,6 @@ fix_dist(APP_DIR)
 
 # serve static files from the build directory
 app.mount(APP_DIR, StaticFiles(directory="./frontend/dist", html=True), name="static")
-
-
-@app.get("/api/hello")
-async def read_root():
-    return {"message": "Hello from FastAPI"}
-
-
-@app.get("/api/add")
-async def add_numbers(a: int, b: int):
-    result = a + b
-    return {"result": result}
-
-
-# TODO this for testing only
-@app.get("/api/main")
-async def main_api():
-    print("Hello from API")
-    return main()
 
 
 # to run this api from the main directory:
