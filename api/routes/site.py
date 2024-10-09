@@ -44,3 +44,11 @@ async def get_location(location_id: int):
         return {"location": location}
 
     return {"error": "Location not found."}
+
+
+# get intersections
+@router.get("/intersections")
+async def get_intersections():
+    """Get all intersections"""
+    intersections = site_controller.get_intersections()
+    return {"intersections": intersections}

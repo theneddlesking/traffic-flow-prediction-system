@@ -28,6 +28,8 @@ function Map() {
   const [waypoints, setWaypoints] = useState<Location[]>([]);
   const [intersections, setIntersections] = useState<Intersection[]>([]);
 
+  const SHOW_INTERSECTIONS = true;
+
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
 
@@ -240,7 +242,7 @@ function Map() {
         ))}
 
         {/* intersections */}
-        {intersections.map(intersection => (
+        {SHOW_INTERSECTIONS && intersections.map(intersection => (
           <Marker key={intersection.lat + intersection.long} position={[intersection.lat, intersection.long]} icon={intersectionIcon} />
         ))}
 

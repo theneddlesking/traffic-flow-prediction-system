@@ -28,7 +28,7 @@ class Intersection:
         long = sum(point.long for point in self.points) / len(self.points)
         return lat, long
 
-    def is_close_to(self, point: RoutingPoint, epilson: float = 0.05):
+    def is_close_to_point(self, point: RoutingPoint, epilson: float = 0.1):
         """Check if a point is close to the intersection.  /
         Where epilson is the maximum distance between the point and the intersection in kilometres.
         """
@@ -37,6 +37,16 @@ class Intersection:
         point_lat, point_long = point.lat, point.long
 
         return haversine(lat, long, point_lat, point_long) <= epilson
+
+    def is_close_to_intersection(
+        self, other_intersection: "Intersection", epilson: float = 0.1
+    ):
+        """Check if an intersection is close to another intersection."""
+        lat, long = self.get_position()
+
+        other_lat, other_long = other_intersection.get_position()
+
+        return haversine(lat, long, other_lat, other_long) <= epilson
 
     def add_point(self, point: RoutingPoint):
         """Add a point to the intersection."""
