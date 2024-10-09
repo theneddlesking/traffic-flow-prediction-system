@@ -13,7 +13,7 @@ class IntersectionConnection:
         other_intersection: Intersection,
         along_street: str,
         speed_limit: int = 60,
-        show_warning: bool = False,
+        show_warning: bool = True,
     ):
         self.intersection = intersection
         self.other_intersection = other_intersection

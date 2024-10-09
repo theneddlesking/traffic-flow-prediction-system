@@ -80,10 +80,34 @@ class RoadNetwork:
         # now add points that are very close to each other to the same intersection
         # this could be because of a road changing names, or a road splitting and then rejoining
 
+        marked_to_delete = set()
+
         for point in self.points:
             for intersection in intersections.values():
-                if intersection.is_close_to(point):
+
+                key = str(intersection.street_names)
+
+                # close and not marked for deletion
+                if key not in marked_to_delete and intersection.is_close_to(point):
+
                     intersection.add_point(point)
+
+                    # remove the point from the old intersection
+                    old_intersection: Intersection = intersections[
+                        str(point.street_names)
+                    ]
+
+                    # we need to check this because it could already be removed
+                    if point in old_intersection.points:
+                        old_intersection.points.remove(point)
+
+                    # if we have no more points in the old intersection, remove it
+                    if len(old_intersection.points) == 0:
+                        marked_to_delete.add(str(point.street_names))
+
+        # remove the marked intersections
+        for key in marked_to_delete:
+            del intersections[key]
 
         return intersections
 
