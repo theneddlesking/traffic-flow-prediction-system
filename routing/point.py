@@ -1,4 +1,6 @@
 from routing.direction import Direction
+from routing.haversine import haversine
+from routing.location import Location
 
 
 class RoutingPoint:
@@ -25,24 +27,19 @@ class RoutingPoint:
         self.street_names = set([street_name, other_street_name])
 
     @classmethod
-    def from_raw_location_data(cls, location: dict):
-        """Create a routing point from raw location data."""
-        location_name = location["name"]
-        lat = location["lat"]
-        long = location["long"]
-        site_number = location["site_number"]
+    def from_location(cls, location: "Location"):
+        """Create a routing point from a location."""
+        direction = cls.get_direction_from_location_name(location.name)
 
         street_name, other_street_name = (
-            cls.get_intersection_street_names_from_location_name(location_name)
+            cls.get_intersection_street_names_from_location_name(location.name)
         )
 
-        direction = cls.get_direction_from_location_name(location_name)
-
         return cls(
-            location_id=location["location_id"],
-            site_number=site_number,
-            lat=lat,
-            long=long,
+            location_id=location.location_id,
+            site_number=location.site_number,
+            lat=location.lat,
+            long=location.long,
             direction=direction,
             street_name=street_name,
             other_street_name=other_street_name,
@@ -83,7 +80,11 @@ class RoutingPoint:
 
         return None
 
-    def __eq__(self, other):
+    def distance_to(self, other: "RoutingPoint") -> float:
+        """Get the distance to another RoutingPoint."""
+        return haversine(self.lat, self.long, other.lat, other.long)
+
+    def __eq__(self, other: "RoutingPoint"):
         return self.location_id == other.location_id
 
     def __hash__(self):
