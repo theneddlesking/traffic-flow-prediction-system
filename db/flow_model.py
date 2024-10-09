@@ -49,4 +49,6 @@ class FlowPredictorModel(DBModel):
 
     def init_model(self):
         """Initialise the model with default predictions."""
-        # TODO
+        df = self.model.get_predictions_df()
+
+        self.db.create_table_from_df(df, self.table_name)

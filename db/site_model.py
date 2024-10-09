@@ -1,3 +1,4 @@
+import pandas as pd
 from db.db import DBModel
 
 
@@ -36,4 +37,30 @@ class SiteModel(DBModel):
 
     def init_model(self):
         """Initialise the model with default locations."""
-        # TODO
+
+        # TODO refactor this out to some kind of data loader
+
+        csv = "./data/vic/ScatsOctober2006.csv"
+
+        df = pd.read_csv(csv, encoding="utf-8")
+
+        cols_str = "SITE_NUMBER,LOCATION,NB_LATITUDE,NB_LONGITUDE"
+
+        cols = cols_str.split(",")
+
+        cols_mapping = {
+            "SITE_NUMBER": "site_number",
+            "LOCATION": "name",
+            "NB_LATITUDE": "lat",
+            "NB_LONGITUDE": "long",
+        }
+
+        df = df[cols]
+
+        df = df.rename(columns=cols_mapping)
+
+        # remove duplicates
+        df = df.drop_duplicates()
+
+        # add to db
+        self.db.create_table_from_df(df, "locations")

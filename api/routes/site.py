@@ -9,7 +9,7 @@ router = APIRouter()
 
 # from location and time of day return the flow
 @router.get("/flow")
-async def get_flow_route(location_id: int, time: str):
+async def get_flow(location_id: int, time: str):
     """Get flow"""
 
     flow = basic_flow_controller.get_flow(location_id, time)
@@ -28,7 +28,7 @@ async def get_flow_route(location_id: int, time: str):
 
 # get all locations
 @router.get("/locations")
-async def get_locations_route():
+async def get_locations():
     """Get all locations"""
     locations = site_controller.get_locations()
     return {"locations": locations}
@@ -36,7 +36,7 @@ async def get_locations_route():
 
 # get location
 @router.get("/location")
-async def get_location_route(location_id: int):
+async def get_location(location_id: int):
     """Get location"""
     location = site_controller.get_location(location_id)
 

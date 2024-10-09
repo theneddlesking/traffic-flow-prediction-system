@@ -16,6 +16,7 @@ router = APIRouter()
 # find optimal route between point a and point b
 @router.get("/route")
 async def get_route(start_location_id: int, end_location_id: int, time_of_day: str):
+    """Get route"""
     # TODO add some caching logic
 
     astar_router = AStarRouter(MFDTimeEstimator(BasicMFD))

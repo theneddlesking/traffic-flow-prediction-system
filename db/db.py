@@ -1,5 +1,7 @@
 import sqlite3
 
+import pandas as pd
+
 
 class SQLiteDB:
     """A class to interact with an sqlite3 database."""
@@ -54,6 +56,18 @@ class SQLiteDB:
         """Drop a table."""
         query = f"DROP TABLE IF EXISTS {table_name}"
         self.execute_query(query, commit=True)
+
+    # NOTE: Proabbly should be in a separate class, but its kinda nice to have it here
+    def create_table_from_df(
+        self, df: pd.DataFrame, table_name: str, auto_increment=True
+    ):
+        """Add a dataframe to the database."""
+
+        if auto_increment:
+            df["id"] = range(1, len(df) + 1)
+
+        with self._connect() as conn:
+            df.to_sql(table_name, conn, if_exists="replace", index=False)
 
 
 class DBModel:

@@ -1,3 +1,5 @@
+import sys
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -5,10 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from api.fix_dist import fix_dist
 from api.routes.site import router as site_router
 from api.routes.route import router as routing_router
-import sys
 
-from db.db import SQLiteDB
-from db.site_model import SiteModel
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -20,12 +19,13 @@ app.include_router(site_router, prefix="/site")
 # use routing router
 app.include_router(routing_router, prefix="/routing")
 
+DEV_URL = "http://localhost:5173"
+BUILD_URL = "http://localhost:8000"
+
 # allow CORS for frontend's origin
 origins = [
-    # dev
-    "http://localhost:5173",
-    # build
-    "http://localhost:8000",
+    DEV_URL,
+    BUILD_URL,
 ]
 
 app.add_middleware(
