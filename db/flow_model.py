@@ -1,4 +1,4 @@
-from db.db import DBModel, SQLiteDB
+from db.sqlite_db import DBModel, SQLiteDB
 from db.spoofed_model import SpoofedModel
 
 

@@ -1,5 +1,5 @@
 import pandas as pd
-from db.db import DBModel
+from db.sqlite_db import DBModel
 
 
 class SiteModel(DBModel):

@@ -1,4 +1,4 @@
-from db.db import DBModel
+from db.sqlite_db import DBModel
 
 
 class Controller:
