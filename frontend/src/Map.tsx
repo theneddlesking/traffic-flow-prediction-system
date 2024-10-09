@@ -6,7 +6,7 @@ import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet'
 import './App.css';
 
 import MapSidebar from './MapSidebar';
-import type { Location } from './types';
+import type { Intersection, Location } from './types';
 
 
 type RoutingResponse = {
@@ -15,12 +15,20 @@ type RoutingResponse = {
   error?: string;
 }
 
+type IntersectionResponse = {
+  "intersections" : {
+    [key: string]: Intersection;
+  }
+};
 
 function Map() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [startPoint, setStartPoint] = useState<Location | null>(null);
   const [endPoint, setEndPoint] = useState<Location | null>(null);
   const [waypoints, setWaypoints] = useState<Location[]>([]);
+  const [intersections, setIntersections] = useState<Intersection[]>([]);
+
+  const SHOW_INTERSECTIONS = true;
 
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
@@ -80,6 +88,31 @@ function Map() {
       });
   }, []);
 
+  useEffect(() => {
+    axios.get<IntersectionResponse>('http://127.0.0.1:8000/site/intersections')
+      .then(intersections => {
+
+        const intersectionsDict = intersections.data.intersections;
+
+        const intersectionsArray = Object.keys(intersectionsDict).map(key => intersectionsDict[key]);
+
+        // remap position based on offset
+        const latOffset = 0.00151;
+        const longOffset = 0.0013;
+
+        intersectionsArray.forEach(intersection => {
+          intersection.lat += latOffset;
+          intersection.long += longOffset;
+        });
+
+        setIntersections(intersectionsArray);
+      }
+      )
+      .catch(error => {
+        console.error('There was an error fetching the data!', error);
+      });
+    }, []);
+
   const getFlow = async (location_id: number) => {
     return await axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location_id}&time=${timeOfDay}`)
       .then(flow => {
@@ -92,6 +125,11 @@ function Map() {
 
   const dotIcon = new Icon({
     iconUrl: 'https://img.icons8.com/?size=100&id=24801&format=png&color=000000',
+    iconSize: [15, 15]
+  });
+
+  const intersectionIcon = new Icon({
+    iconUrl: 'https://img.icons8.com/?size=100&id=24801&format=png&color=ab5543',
     iconSize: [15, 15]
   });
 
@@ -127,9 +165,9 @@ function Map() {
   };
 
   function getRandomColor() {
-    var letters = '0123456789ABCDEF';
-    var color = '#';
-    for (var i = 0; i < 6; i++) {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
       color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
@@ -165,6 +203,8 @@ function Map() {
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
+
+        {/* locations */}
         {locations.map(location => (
             <Marker key={location.location_id} position={[location.lat, location.long]} icon={dotIcon}
               eventHandlers={{
@@ -201,6 +241,11 @@ function Map() {
             </Marker>
         ))}
 
+        {/* intersections */}
+        {SHOW_INTERSECTIONS && intersections.map(intersection => (
+          <Marker key={intersection.lat + intersection.long} position={[intersection.lat, intersection.long]} icon={intersectionIcon} />
+        ))}
+
       {/* draws the route */}
       {/* <Polyline positions={waypointCoordinates} pathOptions={{color: getRandomColor() }} />     */}
       {
@@ -208,6 +253,8 @@ function Map() {
           <Polyline key={index} positions={segment} pathOptions={{color: getRandomColor() }} />
         ))
       }
+
+
 
       </MapContainer>
       <div className='padding-div' />
