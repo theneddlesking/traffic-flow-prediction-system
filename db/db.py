@@ -50,6 +50,11 @@ class SQLiteDB:
         query = f"CREATE TABLE {new_table_name} AS SELECT * FROM {table_name}"
         self.execute_query(query, commit=True)
 
+    def drop_table(self, table_name: str):
+        """Drop a table."""
+        query = f"DROP TABLE IF EXISTS {table_name}"
+        self.execute_query(query, commit=True)
+
 
 class DBModel:
     """A model for the database to interact with a specific table or set of tables."""
