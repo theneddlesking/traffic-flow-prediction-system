@@ -1,10 +1,10 @@
 # init db
-from db.db import SQLiteDB
 from db.flow_controller import FlowController
 from db.flow_model import FlowPredictorModel
 from db.site_controller import SiteController
 from db.site_model import SiteModel
 from db.spoofed_model import SpoofedModel
+from db.sqlite_db import SQLiteDB
 
 
 db = SQLiteDB("./db/site.db")
