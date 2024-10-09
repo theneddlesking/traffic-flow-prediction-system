@@ -137,3 +137,6 @@ ENV/
 
 # ignore db
 db/site.db
+
+# db backups
+db/backups/

@@ -26,14 +26,14 @@ def a_star(
 ) -> list[Node]:
     """A* algorithm to find the shortest path between two nodes in a graph."""
 
-    open_set = []
-    closed_set = set()
+    open_set: list[Node] = []
+    closed_set: set[Node] = set()
 
     start_node = Node(start, 0, heuristic(start, goal))
     heapq.heappush(open_set, start_node)
 
     while open_set:
-        current_node = heapq.heappop(open_set)
+        current_node: Node = heapq.heappop(open_set)
 
         if current_node.location_id == goal:
             path = []

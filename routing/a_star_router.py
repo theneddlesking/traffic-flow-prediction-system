@@ -24,6 +24,9 @@ class AStarRouter(Router):
 
         path = a_star(time_graph, start.location_id, end.location_id, heuristic)
 
+        if path is None:
+            return None, 0
+
         path_points: list[RoutingPoint] = [
             network.points_dict[node.location_id] for node in path
         ]
