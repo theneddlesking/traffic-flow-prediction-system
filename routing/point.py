@@ -80,6 +80,18 @@ class RoutingPoint:
 
         return None
 
+    def as_json(self):
+        """Return the RoutingPoint as a JSON object."""
+        return {
+            "location_id": self.location_id,
+            "site_number": self.site_number,
+            "lat": self.lat,
+            "long": self.long,
+            "direction": self.direction.as_json(),
+            "street_name": self.street_name,
+            "other_street_name": self.other_street_name,
+        }
+
     def distance_to(self, other: "RoutingPoint") -> float:
         """Get the distance to another RoutingPoint."""
         return haversine(self.lat, self.long, other.lat, other.long)

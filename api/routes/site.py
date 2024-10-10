@@ -44,3 +44,25 @@ async def get_location(location_id: int):
         return {"location": location}
 
     return {"error": "Location not found."}
+
+
+# get intersections
+@router.get("/intersections")
+async def get_intersections():
+    """Get all intersections"""
+    intersections = site_controller.get_intersections()
+
+    intersections_json = [intersection.as_json() for intersection in intersections]
+
+    return {"intersections": intersections_json}
+
+
+# get connections
+@router.get("/connections")
+async def get_connections():
+    """Get all connections"""
+    connections = list(site_controller.get_connections())
+
+    connections_json = [connection.as_json() for connection in connections]
+
+    return {"connections": connections_json}

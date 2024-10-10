@@ -82,32 +82,31 @@ class RoadNetwork:
 
         marked_to_delete = set()
 
-        for point in self.points:
-            for intersection in intersections.values():
+        for intersection in intersections.values():
+            for other_intersection in intersections.values():
 
-                key = str(intersection.street_names)
+                # same intersection
+                if intersection == other_intersection:
+                    continue
 
-                # close and not marked for deletion
-                if key not in marked_to_delete and intersection.is_close_to(point):
+                # already marked for deletion
+                if (
+                    other_intersection in marked_to_delete
+                    or intersection in marked_to_delete
+                ):
+                    continue
 
-                    intersection.add_point(point)
+                if intersection.is_close_to_intersection(other_intersection):
+                    intersection: Intersection
+                    other_intersection: Intersection
 
-                    # remove the point from the old intersection
-                    old_intersection: Intersection = intersections[
-                        str(point.street_names)
-                    ]
+                    intersection.points.extend(other_intersection.points)
 
-                    # we need to check this because it could already be removed
-                    if point in old_intersection.points:
-                        old_intersection.points.remove(point)
+                    marked_to_delete.add(other_intersection)
 
-                    # if we have no more points in the old intersection, remove it
-                    if len(old_intersection.points) == 0:
-                        marked_to_delete.add(str(point.street_names))
-
-        # remove the marked intersections
-        for key in marked_to_delete:
-            del intersections[key]
+        # delete the intersections that were merged
+        for intersection in marked_to_delete:
+            del intersections[str(intersection.street_names)]
 
         return intersections
 

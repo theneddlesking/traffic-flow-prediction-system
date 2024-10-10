@@ -28,6 +28,10 @@ class Direction:
 
         return Direction(get_opposite_str(self.value))
 
+    def as_json(self):
+        """Return the direction as a JSON object."""
+        return self.value
+
     def __eq__(self, other: "Direction"):
         return self.value == other.value
 
