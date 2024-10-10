@@ -32,7 +32,7 @@ function Map() {
   const [connections, setConnections] = useState<Connection[]>([]);
 
   const SHOW_INTERSECTIONS = false;
-  const SHOW_CONNECTIONS = true;
+  const SHOW_CONNECTIONS = false;
 
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');

@@ -80,28 +80,13 @@ class IntersectionConnection:
         intersection1_lat, intersection1_long = self.intersection.get_position()
         intersection2_lat, intersection2_long = self.other_intersection.get_position()
 
-    def unreasonable(
-        self, sensible_length_km: int = 5, sensible_angle_degrees: int = 70
-    ) -> bool:
+    def unreasonable(self, sensible_length_km: int = 5) -> bool:
         """Check if the connection is unreasonable given its geometry."""
         # if the connections is very long and very angled
 
         very_long = self.get_connection_length() > sensible_length_km
 
-        # if the connection is very angled
-        angle = calculate_bearing(
-            self.intersection.get_position()[0],
-            self.intersection.get_position()[1],
-            self.other_intersection.get_position()[0],
-            self.other_intersection.get_position()[1],
-        )
-
-        # normalise to 90 degrees
-        angle = angle % 90
-
-        very_angled = angle > sensible_angle_degrees
-
-        return very_long or very_angled
+        return very_long
 
     def map_points(self) -> dict[RoutingPoint, RoutingPoint]:
         """Map the points of the intersection to the points of the other intersection along the street connecting them."""
