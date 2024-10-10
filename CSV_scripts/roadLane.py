@@ -1,6 +1,5 @@
 import pandas as pd
 
-# Load the datasets
 improved_csv_df = pd.read_csv('ImprovedCSV.csv')
 laneNum_df = pd.read_csv('Road_Width_and_Number_of_Lanes.csv')
 
