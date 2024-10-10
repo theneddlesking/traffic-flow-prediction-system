@@ -6,6 +6,9 @@ traffic_df = pd.read_csv('Filtered_Traffic_Count_Locations.csv')
 scats_df = pd.read_csv('ScatsLatLong.csv')
 laneNum_df = pd.read_csv('Road_Width_and_Number_of_Lanes.csv')
 
+#select subnet amount for testing
+#traffic_df = traffic_df.sample(n=5000, random_state=1)
+
 abbreviations = { 
     'nr': 'near',
     'rd': 'road',
