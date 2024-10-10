@@ -59,6 +59,15 @@ class Intersection:
         """Check if two intersections share points."""
         return any(point in other_intersection.points for point in self.points)
 
+    def as_json(self):
+        """Return the intersection as a JSON object."""
+        return {
+            "street_names": list(self.street_names),
+            "points": [point.as_json() for point in self.points],
+            "lat": self.lat,
+            "long": self.long,
+        }
+
     def __str__(self):
         return f"Intersection({self.street_names})"
 

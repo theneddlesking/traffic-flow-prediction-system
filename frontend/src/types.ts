@@ -26,3 +26,12 @@ export type Intersection = {
   lat: number;
   long: number;
 };
+
+export type Connection = {
+  intersection: Intersection;
+  other_intersection: Intersection;
+  along_street: string;
+  speed_limit: number;
+  direction: string;
+  length: number;
+};

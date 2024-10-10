@@ -142,8 +142,32 @@ class IntersectionConnection:
 
         return point_map
 
+    def get_connection_length(self) -> float:
+        """Get the length of the connection between the two intersections in kilometres."""
+        intersection1_lat, intersection1_long = self.intersection.get_position()
+        intersection2_lat, intersection2_long = self.other_intersection.get_position()
+
+        return haversine(
+            intersection1_lat, intersection1_long, intersection2_lat, intersection2_long
+        )
+
+    def as_json(self):
+        """Get the IntersectionConnection as a JSON object."""
+
+        return {
+            "intersection": self.intersection.as_json(),
+            "other_intersection": self.other_intersection.as_json(),
+            "along_street": self.along_street,
+            "speed_limit": self.speed_limit,
+            "direction": self.direction.as_json(),
+            "length": self.get_connection_length(),
+        }
+
     def __str__(self):
-        return f"IntersectionConnection({self.intersection}, {self.other_intersection}, {self.along_street} {self.direction})"
+        return f"IntersectionConnection({self.intersection}, {self.other_intersection}, {self.along_street}, {self.speed_limit}, {self.direction})"
 
     def __repr__(self):
         return str(self)
+
+    def __hash__(self):
+        return hash(str(self))
