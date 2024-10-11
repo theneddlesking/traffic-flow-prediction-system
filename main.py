@@ -58,7 +58,7 @@ data_loader = DataLoader(
 )
 
 training_config = TrainingConfig(
-    epochs=25,
+    epochs=10,
     batch_size=256,
     lags=12,
     train_test_proportion=0.7,
@@ -77,7 +77,6 @@ y_true = main_input_data.y_test_original
 
 # shape
 
-# not sure how shape is 881, from 2677 rows and 0.7 train test split
 y_preds = basic_model.keras.predict(main_input_data.x_test)
 
 # reshape
@@ -100,3 +99,62 @@ DataVisualiser.plot_results(
     names,
     "./results/visualisations/plot.png",
 )
+
+# imagine that these are the last 12 recorded flows for the day at a given location
+# we want to know what the flow will be in the next period
+# so we use the model to predict the flow for the next period
+
+# imagine in the real world
+# this data would be coming from a live feed!
+
+# for our project, we can simply use the last 24 hour period in the test data
+
+dummy_last_12 = [
+    10,
+    12,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50,
+    55,
+    60,
+]
+
+# normalise
+
+normalised = []
+
+for i in range(lags):
+    normalised.append(
+        main_input_data.scaler.transform(
+            [[dummy_last_12[i]]],
+        )[
+            0
+        ][0],
+    )
+
+dummy_last_12 = [normalised]
+
+# reshape
+
+dummy_last_12 = pd.DataFrame(dummy_last_12)
+
+dummy_last_12 = dummy_last_12.values.reshape(1, lags, 1)
+
+# predict
+
+next_res = basic_model.keras.predict(dummy_last_12)
+
+# inverse transform
+
+next_res = main_input_data.scaler.inverse_transform(next_res)
+
+# reshape to just int
+
+next_res = int(next_res[0][0])
+
+print(next_res)
