@@ -61,7 +61,11 @@ data_loader = DataLoader(
 data_loader.save_df(data_loader.preprocess_df(data_loader.get_df()), "./current.csv")
 
 training_config = TrainingConfig(
-    epochs=25, batch_size=256, train_test_proportion=0.7, validation_split=0.05
+    epochs=25,
+    batch_size=256,
+    lags=12,
+    train_test_proportion=0.7,
+    validation_split=0.05,
 )
 
 basic_model, hist_df, main_input_data = ModelTrainer.train(
@@ -83,15 +87,14 @@ y_preds = basic_model.keras.predict(main_input_data.x_test)
 
 y_preds = main_input_data.scaler.inverse_transform(y_preds)
 
-# limit to 96
+# limit to 96 (number of 15 minute periods in a day)
 
-lags = 12
+lags = training_config.lags
 
 y_true = y_true[96 - lags : 96 * 2 - lags]
 y_preds = y_preds[96 - lags : 96 * 2 - lags]
 
 # inverse transform
-
 
 # plot
 DataVisualiser.plot_results(

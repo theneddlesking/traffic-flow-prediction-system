@@ -26,15 +26,11 @@ class ModelTrainer:
                 "Target column not found in data frame. Make sure the target column is in the data frame after preprocessing."
             )
 
-        # TODO figure out where lags comes from
-        # we can just set lags to 12 for now
-        lags = 12
-
         model_input_data = data_loader.create_train_test_split_from_df(
             processed_df,
             training_config.train_test_proportion,
             data_loader.target,
-            lags,
+            training_config.lags,
         )
 
         # configure the model
