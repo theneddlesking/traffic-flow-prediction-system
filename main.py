@@ -1,12 +1,13 @@
 import pandas as pd
 from data_loader import DataLoader
 from data_visualiser import DataVisualiser
-from model_trainer import ModelTrainer
-from nn_model import Model
-from model_builder import ModelBuilder
 from processing_step import ProcessingSteps
 from time_utils import TimeUtils
-from training_config import TrainingConfig
+
+from model.model_trainer import ModelTrainer
+from model.nn_model import Model
+from model.model_builder import ModelBuilder
+from model.training_config import TrainingConfig
 
 
 lstm_units = [12, 64, 64, 1]
@@ -101,5 +102,5 @@ DataVisualiser.plot_results(
     y_true,
     [y_preds],
     names,
-    "./plot.png",
+    "./results/visualisations/plot.png",
 )

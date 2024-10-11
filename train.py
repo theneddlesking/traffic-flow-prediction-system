@@ -1,39 +1,4 @@
-"""
-Train the NN model.
-"""
-
-import sys
-import warnings
-import argparse
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-from data.data import process_data
-from . import model_builder
-import keras
-
-# as of keras 3.0, the practice has changed to directly accessing models, layers, etc. in code e.g. keras.models.load_model
-from keras.callbacks import EarlyStopping
-
-warnings.filterwarnings("ignore")
-
-
-def train_model(model, x_train, y_train, name, config, root, location):
-    """train
-    train a single model.
-
-    # Arguments
-        model: Model, NN model to train.
-        x_train: ndarray(number, lags), Input data for train.
-        y_train: ndarray(number, ), result data for train.
-        name: String, name of model.
-        config: Dict, parameter for train.
-    """
-
-
-# TODO implement train_saes
-
-
+# keeping this for now to check over when we implement saes later
 def train_saes(models, x_train, y_train, name, config, root, location):
     """train
     train the SAEs model.

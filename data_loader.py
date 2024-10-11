@@ -5,7 +5,7 @@ import os
 
 from sklearn.preprocessing import MinMaxScaler
 
-from model_input_data import ModelInputData
+from model.model_input_data import ModelInputData
 
 
 class DataLoader:
@@ -103,18 +103,11 @@ class DataLoader:
 
         split = int(len(df) / periods_per_day * train_test_proportion) * periods_per_day
 
-        print(f"Splitting data at {split}")
-
         # split df based on test train proportion
         df_train, df_test = (
             df[:split],
             df[split:],
         )
-
-        # save as csv
-
-        df_train.to_csv("train.csv", index=False)
-        df_test.to_csv("test.csv", index=False)
 
         scaler = MinMaxScaler(feature_range=(0, 1)).fit(
             df[target].values.reshape(-1, 1)

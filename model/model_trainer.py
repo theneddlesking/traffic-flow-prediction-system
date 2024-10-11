@@ -3,8 +3,8 @@ import pandas as pd
 from tensorflow.python.keras.callbacks import History
 
 from data_loader import DataLoader
-from nn_model import Model
-from training_config import TrainingConfig
+from model.nn_model import Model
+from model.training_config import TrainingConfig
 
 
 class ModelTrainer:

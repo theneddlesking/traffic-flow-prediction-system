@@ -1,4 +1,4 @@
-from nn_model import Model
+from model.nn_model import Model
 
 
 class ModelResult:
