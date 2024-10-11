@@ -18,7 +18,7 @@ class MFDTimeEstimator(TimeEstimator):
 
         # TODO later add estimators for capacity, free flow time, alpha, etc.
 
-        alpha = 1
+        alpha = 0.5
         free_flow_speed = 60
 
         # if we have the same site number this means that we are at the same intersection
