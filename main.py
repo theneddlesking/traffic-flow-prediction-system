@@ -1,5 +1,6 @@
 import pandas as pd
 from data_loader import DataLoader
+from data_visualiser import DataVisualiser
 from model_trainer import ModelTrainer
 from nn_model import Model
 from model_builder import ModelBuilder
@@ -27,16 +28,12 @@ def get_flow_per_period(df: pd.DataFrame, period_in_minutes=15) -> pd.DataFrame:
         # get flow
         flow = row["V00":"V95"]
 
-        date = row["DATE"]
-
         # get 15 minutes
         for i in range(0, 96, 1):
 
             ouput_df_rows.append(
                 {
-                    "time": date
-                    + " "
-                    + TimeUtils.convert_minute_index_to_str(i, period_in_minutes),
+                    "time": TimeUtils.convert_minute_index_to_str(i, period_in_minutes),
                     "flow": flow[i],
                 },
             )
@@ -59,10 +56,47 @@ data_loader = DataLoader(
     ],
 )
 
-training_config = TrainingConfig(epochs=10, batch_size=256)
+# check csv
+
+data_loader.save_df(data_loader.preprocess_df(data_loader.get_df()), "./current.csv")
+
+training_config = TrainingConfig(
+    epochs=25, batch_size=256, train_test_proportion=0.7, validation_split=0.05
+)
 
 basic_model, hist_df, main_input_data = ModelTrainer.train(
     data_loader, training_config, basic_model
 )
 
-print(hist_df)
+# save image
+
+names = ["GRU"]
+
+y_true = main_input_data.y_test_original
+
+# shape
+
+# not sure how shape is 881, from 2677 rows and 0.7 train test split
+y_preds = basic_model.keras.predict(main_input_data.x_test)
+
+# reshape
+
+y_preds = main_input_data.scaler.inverse_transform(y_preds)
+
+# limit to 96
+
+lags = 12
+
+y_true = y_true[96 - lags : 96 * 2 - lags]
+y_preds = y_preds[96 - lags : 96 * 2 - lags]
+
+# inverse transform
+
+
+# plot
+DataVisualiser.plot_results(
+    y_true,
+    [y_preds],
+    names,
+    "./plot.png",
+)

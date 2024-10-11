@@ -25,9 +25,9 @@ class DataLoader:
         """Loads data frame from CSV file."""
         return pd.read_csv(self.csv_path, encoding="utf-8")
 
-    def save_df(self, df: pd.DataFrame) -> None:
+    def save_df(self, df: pd.DataFrame, new_path: str) -> None:
         """Saves data frame to CSV file."""
-        df.to_csv(self.csv_path, encoding="utf-8", index=False)
+        df.to_csv(new_path, encoding="utf-8", index=False)
 
     def preprocess_df(self, df: pd.DataFrame) -> pd.DataFrame:
         """Preprocesses the data frame."""
@@ -97,11 +97,24 @@ class DataLoader:
             scaler: StandardScaler.
         """
 
+        # split df based on test train proportion but evenly per day
+
+        periods_per_day = 96
+
+        split = int(len(df) / periods_per_day * train_test_proportion) * periods_per_day
+
+        print(f"Splitting data at {split}")
+
         # split df based on test train proportion
         df_train, df_test = (
-            df[: int(len(df) * train_test_proportion)],
-            df[int(len(df) * train_test_proportion) :],
+            df[:split],
+            df[split:],
         )
+
+        # save as csv
+
+        df_train.to_csv("train.csv", index=False)
+        df_test.to_csv("test.csv", index=False)
 
         scaler = MinMaxScaler(feature_range=(0, 1)).fit(
             df[target].values.reshape(-1, 1)
@@ -117,7 +130,6 @@ class DataLoader:
 
         for i in range(lags, len(train_normalised_flow)):
             train.append(train_normalised_flow[i - lags : i + 1])
-
         for i in range(lags, len(test_normalised_flow)):
             test.append(test_normalised_flow[i - lags : i + 1])
 
@@ -134,6 +146,8 @@ class DataLoader:
         y_test_original = scaler.inverse_transform(y_test.reshape(-1, 1)).reshape(
             1, -1
         )[0]
+
+        # NOTE: reshaping for LSTM, might be different for SAES or other models
 
         x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
         x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))

@@ -7,17 +7,18 @@ class DataVisualiser:
     """Class to visualise dataframes as plots."""
 
     # TODO refactor this out a better way
-    def plot_results(self, y_true: list, y_preds: list, names: list, location: str):
+    @staticmethod
+    def plot_results(y_true: list, y_preds: list, names: list, save_path: str):
         """Plot the true data and predicted data.
 
         # Arguments
-        y_true: List/ndarray, ture data.
+        y_true: List/ndarray, true data.
         y_pred: List/ndarray, predicted data.
         names: List, Method names.
         location: String, Location name.
         """
         d = "2016-3-4 00:00"
-        x = pd.date_range(d, periods=288, freq="5min")
+        x = pd.date_range(d, periods=96, freq="15min")
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -36,4 +37,4 @@ class DataVisualiser:
         fig.autofmt_xdate()
 
         # save plot
-        plt.savefig("images/vic/" + location + ".png")
+        plt.savefig(save_path)
