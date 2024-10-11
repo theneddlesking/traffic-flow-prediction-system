@@ -57,10 +57,6 @@ data_loader = DataLoader(
     ],
 )
 
-# check csv
-
-data_loader.save_df(data_loader.preprocess_df(data_loader.get_df()), "./current.csv")
-
 training_config = TrainingConfig(
     epochs=25,
     batch_size=256,
