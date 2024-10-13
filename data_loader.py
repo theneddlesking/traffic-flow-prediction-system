@@ -6,7 +6,7 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 
 from model.model_input_data import ModelInputData
-from model.training_config import TrainingConfig
+from time_utils import TimeUtils
 
 
 class DataLoader:
@@ -164,3 +164,29 @@ class DataLoader:
         y_preds = y_preds[96 - lags : periods_per_day * 2 - lags]
 
         return y_true, y_preds
+
+    @staticmethod
+    def create_flow_time_df(
+        y_values: list, minutes_in_period: int = 15
+    ) -> pd.DataFrame:
+        """Create a time data frame from a day of flow values."""
+
+        # check y_preds is a list with len for number of periods
+        number_of_periods = 96
+
+        if len(y_values) != number_of_periods:
+            raise ValueError(f"y_preds must have {number_of_periods} values")
+
+        # create a list of dictionaries
+        output_df_rows = []
+
+        for i in range(0, number_of_periods, 1):
+
+            output_df_rows.append(
+                {
+                    "time": TimeUtils.convert_minute_index_to_str(i, minutes_in_period),
+                    "flow": y_values[i],
+                },
+            )
+
+        return pd.DataFrame(output_df_rows)

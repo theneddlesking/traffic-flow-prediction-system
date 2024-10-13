@@ -73,14 +73,14 @@ basic_model, hist_df, main_input_data = ModelTrainer.train(
 
 y_true = main_input_data.y_test_original
 
-# shape
-y_preds = basic_model.predict(main_input_data.x_test)
-
-# reshape
-y_preds = main_input_data.scaler.inverse_transform(y_preds)
+# predict
+y_preds = basic_model.predict(main_input_data.x_test, main_input_data.scaler)
 
 # limit to one day
 y_true, y_preds = DataLoader.get_example_day(y_true, y_preds, training_config.lags)
+
+# create flow time df
+preds_df = DataLoader.create_flow_time_df(y_preds)
 
 # result
 results = [
@@ -92,36 +92,6 @@ DataVisualiser.plot_results(results, y_true)
 
 # save plot
 DataVisualiser.save_plot("./results/visualisations/basic_model.png")
-
-# imagine that these are the last 12 recorded flows for the day at a given location
-# we want to know what the flow will be in the next period
-# so we use the model to predict the flow for the next period
-
-# imagine in the real world
-# this data would be coming from a live feed!
-
-# for our project, we can simply use the last 24 hour period in the test data
-
-dummy_last_12 = [
-    10,
-    12,
-    15,
-    20,
-    25,
-    30,
-    35,
-    40,
-    45,
-    50,
-    55,
-    60,
-]
-
-# normalise
-
-next_res = basic_model.predict_from_last_n(dummy_last_12, main_input_data.scaler)
-
-print(next_res)
 
 # save model
 basic_model.save("./saved_models")
