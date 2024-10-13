@@ -53,7 +53,7 @@ data_loader = DataLoader(
         ),
         # drop duplicates
         ProcessingSteps.drop_duplicates(),
-        # get flow per period
+        # get flow per period, NOTE: drops all other columns
         get_flow_per_period,
     ],
 )
@@ -80,7 +80,7 @@ y_preds = basic_model.predict(main_input_data.x_test)
 y_preds = main_input_data.scaler.inverse_transform(y_preds)
 
 # limit to one day
-y_true, y_preds = DataLoader.get_example_day(y_true, y_preds, 12)
+y_true, y_preds = DataLoader.get_example_day(y_true, y_preds, training_config.lags)
 
 # result
 results = [

@@ -120,6 +120,8 @@ class DataLoader:
             df_test[target].values.reshape(-1, 1)
         ).reshape(1, -1)[0]
 
+        # TODO retain other columns for evaluation
+
         train, test = [], []
 
         for i in range(lags, len(train_normalised_flow)):
