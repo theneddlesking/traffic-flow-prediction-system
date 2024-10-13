@@ -2,6 +2,8 @@ from typing import Callable, List
 
 import pandas as pd
 
+from time_utils import TimeUtils
+
 
 class ProcessingSteps:
     """A collection of processing steps for dataframes."""
@@ -42,3 +44,37 @@ class ProcessingSteps:
     def drop_duplicates() -> Callable[[pd.DataFrame], pd.DataFrame]:
         """Drop duplicate rows in a dataframe."""
         return lambda df: df.drop_duplicates()
+
+    @staticmethod
+    def get_flow_per_period(period_in_minutes=15) -> pd.DataFrame:
+        """Get flow per period"""
+
+        def inner(df: pd.DataFrame):
+            """Inner function to get flow per period"""
+            ouput_df_rows = []
+
+            # iter each row
+            for _, row in df.iterrows():
+
+                # get flow
+                flow = row["V00":"V95"]
+
+                # get 15 minutes
+                for i in range(0, 96, 1):
+
+                    ouput_df_rows.append(
+                        {
+                            "time": TimeUtils.convert_minute_index_to_str(
+                                i, period_in_minutes
+                            ),
+                            # using iloc to get the value
+                            "flow": flow.iloc[i],
+                        },
+                    )
+
+            output_df = pd.DataFrame(ouput_df_rows)
+
+            # concat the original df with the new df
+            return pd.concat([df, output_df], axis=1)
+
+        return inner

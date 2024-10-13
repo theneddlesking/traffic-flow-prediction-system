@@ -190,3 +190,12 @@ class DataLoader:
             )
 
         return pd.DataFrame(output_df_rows)
+
+    @staticmethod
+    def peek(df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
+        """Peek at the first n rows of a data frame."""
+        return df.head(n)
+
+    def peek_preprocessed(self, n: int = 5) -> pd.DataFrame:
+        """Peek at the first n rows of a preprocessed data frame."""
+        return self.peek(self.preprocess_df(self.get_df()), n)

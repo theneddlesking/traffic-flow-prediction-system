@@ -1,4 +1,4 @@
-from keras.layers import Dense, Dropout, Activation, LSTM, GRU
+from keras.layers import Dense, Dropout, Activation, LSTM, GRU, Input
 from keras.models import Sequential
 
 
@@ -21,7 +21,11 @@ class ModelBuilder:
             raise ValueError("units must contain at least 3 elements")
 
         model = Sequential()
-        model.add(LSTM(units[1], input_shape=(units[0], 1), return_sequences=True))
+
+        # add input layer
+        model.add(Input(shape=(units[0], 1)))
+
+        model.add(LSTM(units[1], return_sequences=True))
 
         # loop through units and add layers
         for unit in units[2:-1]:
@@ -49,7 +53,11 @@ class ModelBuilder:
             raise ValueError("units must contain at least 3 elements")
 
         model = Sequential()
-        model.add(GRU(units[1], input_shape=(units[0], 1), return_sequences=True))
+
+        # add input layer
+        model.add(Input(shape=(units[0], 1)))
+
+        model.add(GRU(units[1], return_sequences=True))
 
         for unit in units[2:-1]:
             model.add(GRU(unit))

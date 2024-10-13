@@ -1,9 +1,7 @@
-import pandas as pd
 from data_loader import DataLoader
 from data_visualiser import DataVisualiser
 from model.model_result import ModelResult
 from processing_step import ProcessingSteps
-from time_utils import TimeUtils
 
 from model.model_trainer import ModelTrainer
 from model.nn_model import Model
@@ -20,29 +18,6 @@ basic_model = Model(ModelBuilder.get_gru(gru_units), "basic_model")
 CSV = "./data/vic/ScatsOctober2006.csv"
 
 
-def get_flow_per_period(df: pd.DataFrame, period_in_minutes=15) -> pd.DataFrame:
-    """Get flow per period"""
-    ouput_df_rows = []
-
-    # iter each row
-    for _, row in df.iterrows():
-
-        # get flow
-        flow = row["V00":"V95"]
-
-        # get 15 minutes
-        for i in range(0, 96, 1):
-
-            ouput_df_rows.append(
-                {
-                    "time": TimeUtils.convert_minute_index_to_str(i, period_in_minutes),
-                    "flow": flow[i],
-                },
-            )
-
-    return pd.DataFrame(ouput_df_rows)
-
-
 data_loader = DataLoader(
     CSV,
     "flow",
@@ -53,10 +28,15 @@ data_loader = DataLoader(
         ),
         # drop duplicates
         ProcessingSteps.drop_duplicates(),
-        # get flow per period, NOTE: drops all other columns
-        get_flow_per_period,
+        # get flow per period
+        ProcessingSteps.get_flow_per_period(),
+        # drop columns
+        ProcessingSteps.filter_columns(["time", "flow"]),
     ],
 )
+
+# print df
+print(data_loader.peek_preprocessed())
 
 training_config = TrainingConfig(
     epochs=10,
