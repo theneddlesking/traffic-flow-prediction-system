@@ -2,13 +2,19 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import matplotlib as mpl
 
+from model.model_result import ModelResult
+
 
 class DataVisualiser:
     """Class to visualise dataframes as plots."""
 
     # TODO refactor this out a better way
     @staticmethod
-    def plot_results(y_true: list, y_preds: list, names: list, save_path: str):
+    def plot_results(
+        results: list[ModelResult],
+        y_true: list,
+        minutes_per_period: int = 15,
+    ):
         """Plot the true data and predicted data.
 
         # Arguments
@@ -17,14 +23,21 @@ class DataVisualiser:
         names: List, Method names.
         location: String, Location name.
         """
+
+        number_of_periods = 24 * 60 // minutes_per_period
+
+        freq = f"{minutes_per_period}min"
+
         d = "2016-3-4 00:00"
-        x = pd.date_range(d, periods=96, freq="15min")
+        x = pd.date_range(d, periods=number_of_periods, freq=freq)
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
 
         ax.plot(x, y_true, label="True Data")
-        for name, y_pred in zip(names, y_preds):
+        for result in results:
+            y_pred = result.y_preds
+            name = result.model.name
             ax.plot(x, y_pred, label=name)
 
         plt.legend()
@@ -36,5 +49,12 @@ class DataVisualiser:
         ax.xaxis.set_major_formatter(date_format)
         fig.autofmt_xdate()
 
-        # save plot
-        plt.savefig(save_path)
+    @staticmethod
+    def save_plot(path: str):
+        """Save the plot to disk."""
+        plt.savefig(path)
+
+    @staticmethod
+    def show_plot():
+        """Show the plot."""
+        plt.show()

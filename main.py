@@ -1,6 +1,7 @@
 import pandas as pd
 from data_loader import DataLoader
 from data_visualiser import DataVisualiser
+from model.model_result import ModelResult
 from processing_step import ProcessingSteps
 from time_utils import TimeUtils
 
@@ -14,7 +15,7 @@ lstm_units = [12, 64, 64, 1]
 gru_units = [12, 64, 64, 1]
 saes_units = [12, 400, 400, 400, 1]
 
-basic_model = Model(ModelBuilder.get_gru(lstm_units), "basic_model")
+basic_model = Model(ModelBuilder.get_gru(gru_units), "basic_model")
 
 CSV = "./data/vic/ScatsOctober2006.csv"
 
@@ -65,40 +66,32 @@ training_config = TrainingConfig(
     validation_split=0.05,
 )
 
+# train
 basic_model, hist_df, main_input_data = ModelTrainer.train(
     data_loader, training_config, basic_model
 )
 
-# save image
-
-names = ["GRU"]
-
 y_true = main_input_data.y_test_original
 
 # shape
-
-y_preds = basic_model.keras.predict(main_input_data.x_test)
+y_preds = basic_model.predict(main_input_data.x_test)
 
 # reshape
-
 y_preds = main_input_data.scaler.inverse_transform(y_preds)
 
-# limit to 96 (number of 15 minute periods in a day)
+# limit to one day
+y_true, y_preds = DataLoader.get_example_day(y_true, y_preds, 12)
 
-lags = training_config.lags
-
-y_true = y_true[96 - lags : 96 * 2 - lags]
-y_preds = y_preds[96 - lags : 96 * 2 - lags]
-
-# inverse transform
+# result
+results = [
+    ModelResult(basic_model, y_preds),
+]
 
 # plot
-DataVisualiser.plot_results(
-    y_true,
-    [y_preds],
-    names,
-    "./results/visualisations/plot.png",
-)
+DataVisualiser.plot_results(results, y_true)
+
+# save plot
+DataVisualiser.save_plot("./results/visualisations/basic_model.png")
 
 # imagine that these are the last 12 recorded flows for the day at a given location
 # we want to know what the flow will be in the next period
@@ -126,35 +119,9 @@ dummy_last_12 = [
 
 # normalise
 
-normalised = []
-
-for i in range(lags):
-    normalised.append(
-        main_input_data.scaler.transform(
-            [[dummy_last_12[i]]],
-        )[
-            0
-        ][0],
-    )
-
-dummy_last_12 = [normalised]
-
-# reshape
-
-dummy_last_12 = pd.DataFrame(dummy_last_12)
-
-dummy_last_12 = dummy_last_12.values.reshape(1, lags, 1)
-
-# predict
-
-next_res = basic_model.keras.predict(dummy_last_12)
-
-# inverse transform
-
-next_res = main_input_data.scaler.inverse_transform(next_res)
-
-# reshape to just int
-
-next_res = int(next_res[0][0])
+next_res = basic_model.predict_from_last_n(dummy_last_12, main_input_data.scaler)
 
 print(next_res)
+
+# save model
+basic_model.save("./saved_models")

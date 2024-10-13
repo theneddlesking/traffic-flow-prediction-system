@@ -6,10 +6,11 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 
 from model.model_input_data import ModelInputData
+from model.training_config import TrainingConfig
 
 
 class DataLoader:
-    """Loads data frame from CSV file and processes it."""
+    """Data Loader class."""
 
     def __init__(
         self,
@@ -147,3 +148,17 @@ class DataLoader:
 
         # NOTE: not sure if we need y_test_original or scaler or both
         return ModelInputData(x_train, y_train, x_test, y_test, y_test_original, scaler)
+
+    @staticmethod
+    def get_example_day(
+        y_true: np.ndarray, y_preds: np.ndarray, lags: int, minutes_in_period: int = 15
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Get an example day of true and predicted values."""
+
+        periods_per_day = 24 * 60 // minutes_in_period
+
+        # limit to 96 (number of 15 minute periods in a day)
+        y_true = y_true[96 - lags : periods_per_day * 2 - lags]
+        y_preds = y_preds[96 - lags : periods_per_day * 2 - lags]
+
+        return y_true, y_preds
