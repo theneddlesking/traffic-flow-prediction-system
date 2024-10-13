@@ -78,3 +78,10 @@ class ProcessingSteps:
             return pd.concat([df, output_df], axis=1)
 
         return inner
+
+    # categorise row
+    @staticmethod
+    def categorise_column(column: str) -> Callable[[pd.DataFrame], pd.DataFrame]:
+        """Categorise a column in a dataframe."""
+        # using pandas astype to convert to category
+        return lambda df: df.astype({column: "category"})

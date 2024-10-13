@@ -22,16 +22,26 @@ data_loader = DataLoader(
     CSV,
     "flow",
     [
-        # filter only LOCATION = "WARRIGAL_RD N of HIGH STREET_RD" for now
+        # filter only some locations
         ProcessingSteps.filter_rows(
-            lambda df: df["LOCATION"] == "WARRIGAL_RD N of HIGH STREET_RD"
+            lambda df: df["LOCATION"].isin(
+                ["WARRIGAL_RD N of HIGH STREET_RD", "HIGH STREET_RD E of WARRIGAL_RD"]
+            )
+        ),
+        # categorise location
+        ProcessingSteps.categorise_column("LOCATION"),
+        # rename columns
+        ProcessingSteps.rename_columns(
+            {
+                "LOCATION": "location",
+            }
         ),
         # drop duplicates
         ProcessingSteps.drop_duplicates(),
         # get flow per period
         ProcessingSteps.get_flow_per_period(),
         # drop columns
-        ProcessingSteps.filter_columns(["time", "flow"]),
+        ProcessingSteps.filter_columns(["time", "flow", "location"]),
     ],
 )
 
