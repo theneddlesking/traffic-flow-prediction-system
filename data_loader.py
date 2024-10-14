@@ -159,9 +159,8 @@ class DataLoader:
 
         periods_per_day = 24 * 60 // minutes_in_period
 
-        # limit to 96 (number of 15 minute periods in a day)
-        y_true = y_true[96 - lags : periods_per_day * 2 - lags]
-        y_preds = y_preds[96 - lags : periods_per_day * 2 - lags]
+        y_true = y_true[periods_per_day - lags : periods_per_day * 2 - lags]
+        y_preds = y_preds[periods_per_day - lags : periods_per_day * 2 - lags]
 
         return y_true, y_preds
 
@@ -172,7 +171,7 @@ class DataLoader:
         """Create a time data frame from a day of flow values."""
 
         # check y_preds is a list with len for number of periods
-        number_of_periods = 96
+        number_of_periods = 24 * 60 // minutes_in_period
 
         if len(y_values) != number_of_periods:
             raise ValueError(f"y_preds must have {number_of_periods} values")
