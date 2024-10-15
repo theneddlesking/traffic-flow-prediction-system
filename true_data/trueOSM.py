@@ -12,6 +12,22 @@ def get_osrm_travel_time(start_lat, start_long, end_lat, end_long):
     else:
         print(f"Error: {response.status_code}")
         return None
+    
+def simulate_times_and_days(start_lat, start_long, end_lat, end_long):
+    # times and days to simulate
+    times_of_day = ['7am', '12pm', '6pm']
+    days_of_week = ['Monday', 'Friday', 'Saturday']
+
+    results = {}
+
+    for day in days_of_week:
+        results[day] = {}
+        for time in times_of_day:
+            duration = get_osrm_travel_time(start_lat, start_long, end_lat, end_long)
+            results[day][time] = duration
+            print(f"{day} at {time}: {duration} minutes")
+    
+    return results
 
 def main(input_csv, output_csv):
     with open(input_csv, 'r') as infile, open(output_csv, 'w', newline='') as outfile:
