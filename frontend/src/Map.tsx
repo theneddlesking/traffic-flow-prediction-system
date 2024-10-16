@@ -245,10 +245,6 @@ function Map() {
                   const marker = e.target;
                   marker.openPopup();
                 },
-                mouseout: (e) => {
-                  const marker = e.target;
-                  marker.closePopup();
-                },
                 click: async () => {
                   if (startPoint === null) {
                     setStartPoint(location);
@@ -280,7 +276,8 @@ function Map() {
                 <div>
                   <strong>{location.site_number}</strong> - {location.name}
                   <br />
-                  {location.flow && 'Predicted flow: ' + location.flow}
+                  <button>Set Start Point</button>
+                  <button>Set Destination</button>
                 </div>
               </Popup>
             </Marker>
