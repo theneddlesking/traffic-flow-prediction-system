@@ -239,7 +239,7 @@ function Map() {
     <div className='map-container'>
       {error && <div className="error-banner">{error}</div>}
 
-      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} locations={locations} />
+      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)} locations={locations} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
         <TileLayer

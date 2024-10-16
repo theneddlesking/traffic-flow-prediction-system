@@ -19,11 +19,13 @@ type MapSidebarProps = {
   endPoint: Location | null;
   setStartPoint: (coordinates: Location | null) => void;
   setEndPoint: (coordinates: Location | null) => void;
+  timeOfDay: string;
+  setTimeOfDay: (time: string) => void;
   locations: Location[];
 };
 
 
-function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, locations }: MapSidebarProps) {
+function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, locations }: MapSidebarProps) {
   const [startPointInput, setStartPointInput] = useState('');
   const [endPointInput, setEndPointInput] = useState('');
 
@@ -120,6 +122,12 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
                   value={endPointInput}
                   onChange={(e) => validateEndInput(e.target.value)}
                   list="locations"
+                />
+                <input
+                  type="time"
+                  id="timeOfDay"
+                  value={timeOfDay}
+                  onChange={(e) => setTimeOfDay(e.target.value)}
                 />
               </div>
               <datalist id="locations">
