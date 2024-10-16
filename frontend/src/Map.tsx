@@ -241,6 +241,14 @@ function Map() {
         {locations.map(location => (
             <Marker key={location.location_id} position={[location.lat, location.long]} icon={dotIcon}
               eventHandlers={{
+                mouseover: (e) => {
+                  const marker = e.target;
+                  marker.openPopup();
+                },
+                mouseout: (e) => {
+                  const marker = e.target;
+                  marker.closePopup();
+                },
                 click: async () => {
                   if (startPoint === null) {
                     setStartPoint(location);
@@ -269,7 +277,11 @@ function Map() {
               }}
             >
               <Popup>
-                {location.site_number} - {location.name}
+                <div>
+                  <strong>{location.site_number}</strong> - {location.name}
+                  <br />
+                  {location.flow && 'Predicted flow: ' + location.flow}
+                </div>
               </Popup>
             </Marker>
         ))}
