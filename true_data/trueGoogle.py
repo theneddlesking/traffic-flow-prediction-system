@@ -2,21 +2,17 @@ import os
 import csv
 import requests
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
-# Get API key from environment variables
 API_KEY = os.getenv('GOOGLE_API_KEY')
 
-# Function to convert date and time into Unix timestamp (Google API uses Unix time)
 def get_unix_timestamp(day_of_week, hour, minute=0):
     today = datetime.now()
-    target_date = today
-
     days_ahead = (day_of_week - today.weekday() + 7) % 7
     target_date = today.replace(hour=hour, minute=minute, second=0, microsecond=0)
-    
+
     if days_ahead > 0:
-        target_date = target_date + timedelta(days=days_ahead)
+        target_date += timedelta(days=days_ahead)
 
     return int(time.mktime(target_date.timetuple()))
 
@@ -26,7 +22,7 @@ def get_travel_time(start_lat, start_long, end_lat, end_long, departure_time):
         f"origin={start_lat},{start_long}&destination={end_lat},{end_long}"
         f"&departure_time={departure_time}&key={API_KEY}"
     )
-    
+
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
@@ -41,11 +37,10 @@ def get_travel_time(start_lat, start_long, end_lat, end_long, departure_time):
         return None
 
 def simulate_times_and_days(start_lat, start_long, end_lat, end_long):
-    times_of_day = [(7, 0), (12, 0), (18, 0)]
+    times_of_day = [(7, 0), (12, 0), (18, 0)] 
     days_of_week = {'Monday': 0, 'Friday': 4, 'Saturday': 5}
 
     results = {}
-
     for day_name, day_num in days_of_week.items():
         results[day_name] = {}
         for hour, minute in times_of_day:
@@ -57,9 +52,12 @@ def simulate_times_and_days(start_lat, start_long, end_lat, end_long):
     return results
 
 def main(input_csv, output_csv):
+    route_ids = set()
+    route_id = 1
+
     with open(input_csv, 'r') as infile, open(output_csv, 'w', newline='') as outfile:
         reader = csv.DictReader(infile)
-        fieldnames = ['START_LAT', 'START_LONG', 'END_LAT', 'END_LONG', 'Day', 'Time', 'Time_Taken']
+        fieldnames = ['Route_ID', 'START_LAT', 'START_LONG', 'END_LAT', 'END_LONG', 'Day', 'Time', 'Time_Taken']
         writer = csv.DictWriter(outfile, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -69,20 +67,28 @@ def main(input_csv, output_csv):
             end_lat = row['END_LAT']
             end_long = row['END_LONG']
 
+            # Generate travel times for different days and times
             results = simulate_times_and_days(start_lat, start_long, end_lat, end_long)
+
             for day, times in results.items():
                 for time_of_day, duration in times.items():
-                    writer.writerow({
-                        'START_LAT': start_lat,
-                        'START_LONG': start_long,
-                        'END_LAT': end_lat,
-                        'END_LONG': end_long,
-                        'Day': day,
-                        'Time': time_of_day,
-                        'Time_Taken': duration
-                    })
+                    route_key = (start_lat, start_long, end_lat, end_long, day, time_of_day)
+
+                    if route_key not in route_ids:  # Avoid duplicates
+                        route_ids.add(route_key)
+                        writer.writerow({
+                            'Route_ID': route_id,
+                            'START_LAT': start_lat,
+                            'START_LONG': start_long,
+                            'END_LAT': end_lat,
+                            'END_LONG': end_long,
+                            'Day': day,
+                            'Time': time_of_day,
+                            'Time_Taken': duration
+                        })
+                        route_id += 1
 
 if __name__ == '__main__':
     input_csv = '../data/vic/ScatsOctober2006.csv'  
-    output_csv = 'output_file.csv'
+    output_csv = 'trueData.csv'
     main(input_csv, output_csv)
