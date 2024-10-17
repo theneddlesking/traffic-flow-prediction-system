@@ -35,9 +35,11 @@ function Map() {
 
   const SHOW_INTERSECTIONS = false;
   const SHOW_CONNECTIONS = false;
+  const DEMO = true;
 
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
+
 
 
   const generateRoute = async (routeStartPoint: Location, routeEndPoint: Location) => {
@@ -204,6 +206,13 @@ function Map() {
   };
 
   function getRandomColor() {
+
+    // TEMP
+    if (DEMO) {
+      return "blue";
+    }
+
+
     const letters = '0123456789ABCDEF';
     let color = '#';
     for (let i = 0; i < 6; i++) {
