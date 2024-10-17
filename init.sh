@@ -48,5 +48,8 @@ npm run build
 # go back to the root directory
 cd ..
 
+# run migration
+python3 migrate.py
+
 # run app with uvicorn
 uvicorn app:app --reload
