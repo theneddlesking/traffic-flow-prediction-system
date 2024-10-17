@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Icon } from 'leaflet';
+import { Icon, LatLng } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
@@ -41,8 +41,6 @@ function Map() {
   const [timeOfDay, setTimeOfDay] = useState('12:00');
 
   const [hoursTaken, setHoursTaken] = useState<number | null>(null);
-
-
 
   const generateRoute = async (routeStartPoint: Location, routeEndPoint: Location) => {
 
