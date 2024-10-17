@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Icon, LatLng } from 'leaflet';
+import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
