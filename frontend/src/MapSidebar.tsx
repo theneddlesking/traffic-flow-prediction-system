@@ -30,7 +30,7 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
   const [startPointInput, setStartPointInput] = useState('');
   const [endPointInput, setEndPointInput] = useState('');
 
-  const [menuCollapse, setMenuCollapse] = useState(true);
+  const [menuCollapse, setMenuCollapse] = useState(false);
   const menuIconClick = () => {
     return menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
   };
