@@ -200,7 +200,7 @@ function Map() {
       }
 
       if (startPoint !== null) {
-        generateRoute();
+        generateRoute(location);
       }
     }
   };
