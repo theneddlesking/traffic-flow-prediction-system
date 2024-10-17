@@ -40,17 +40,15 @@ function Map() {
   const [timeOfDay, setTimeOfDay] = useState('12:00');
 
 
-  const generateRoute = async (possibleEndPoint?: Location) => {
-
-    const routeEndPoint = possibleEndPoint || endPoint;
+  const generateRoute = async (routeStartPoint: Location, routeEndPoint: Location) => {
 
     // fetch route from backend
-    const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${startPoint?.location_id}&end_location_id=${routeEndPoint?.location_id}&time_of_day=${timeOfDay}`)
+    const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}`)
 
     // handle error
     if (res.data.error) {
       console.error(res.data.error);
-      setError(`There was an error fetching the route between ${startPoint?.location_id} and ${routeEndPoint?.location_id} - ${res.data.error}`);
+      setError(`There was an error fetching the route between ${routeStartPoint.location_id} and ${routeEndPoint.location_id} - ${res.data.error}`);
       return;
     }
 
@@ -185,7 +183,7 @@ function Map() {
       }
 
       if (endPoint !== null) {
-        generateRoute();
+        generateRoute(location, endPoint);
       }
     }
   };
@@ -200,7 +198,7 @@ function Map() {
       }
 
       if (startPoint !== null) {
-        generateRoute(location);
+        generateRoute(startPoint, location);
       }
     }
   };
