@@ -19,11 +19,14 @@ type MapSidebarProps = {
   endPoint: Location | null;
   setStartPoint: (coordinates: Location | null) => void;
   setEndPoint: (coordinates: Location | null) => void;
+  timeOfDay: string;
+  setTimeOfDay: (time: string) => void;
   locations: Location[];
+  hoursTaken: number;
 };
 
 
-function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, locations }: MapSidebarProps) {
+function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, locations, hoursTaken }: MapSidebarProps) {
   const [startPointInput, setStartPointInput] = useState('');
   const [endPointInput, setEndPointInput] = useState('');
 
@@ -81,6 +84,27 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
     }
   };
 
+  function getTimeStringFromHours(hoursTaken: number) {
+    
+    const inMinutes = hoursTaken * 60;
+
+    // eg. 73
+    // 73 % 60 = 13
+
+    const minutes = inMinutes % 60
+
+    // (73 - 13) / 60 = 1
+
+    const hours = (inMinutes - minutes) / 60
+
+
+    const hourStr = hours == 1 ? "hr" : "hrs";
+
+    // eg. 1hr 5min
+
+    return `${hours}${hourStr} ${minutes}min`;
+  }
+
   return (
     <>
       <div id="header">
@@ -121,6 +145,12 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
                   onChange={(e) => validateEndInput(e.target.value)}
                   list="locations"
                 />
+                <input
+                  type="time"
+                  id="timeOfDay"
+                  value={timeOfDay}
+                  onChange={(e) => setTimeOfDay(e.target.value)}
+                />
               </div>
               <datalist id="locations">
                 {locations.map(location => (
@@ -134,7 +164,7 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
                 <p>{startPoint.site_number} - {startPoint.name}</p>
                 <p>Latitude: {startPoint.lat}</p>
                 <p>Longitude: {startPoint.long}</p>
-                <p>Traffic flow at 12:00: {startPoint.flow}</p>
+                <p>Traffic flow at {timeOfDay}: {startPoint.flow}</p>
               </Menu>
             )}
             {endPoint && (
@@ -143,14 +173,13 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
                 <p>{endPoint.site_number} - {endPoint.name}</p>
                 <p>Latitude: {endPoint.lat}</p>
                 <p>Longitude: {endPoint.long}</p>
-                <p>Traffic flow at 12:00: {endPoint.flow}</p>
+                <p>Traffic flow at {timeOfDay}: {endPoint.flow}</p>
               </Menu>
             )}
             {startPoint && endPoint && (
               <Menu>
                 <h2>Route Information</h2>
-                <p>Information on route *here*</p>
-                <p>Only visible when both start point and destination location is present</p>
+                <p>Time Taken: {getTimeStringFromHours(hoursTaken)}</p>
               </Menu>
             )}
           </SidebarContent>

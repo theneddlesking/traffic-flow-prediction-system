@@ -31,8 +31,11 @@ function Map() {
   const [intersections, setIntersections] = useState<Intersection[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
 
+  const [error, setError] = useState<string | null>(null);
+
   const SHOW_INTERSECTIONS = false;
-  const SHOW_CONNECTIONS = true;
+  const SHOW_CONNECTIONS = false;
+  const DEMO = true;
 
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
@@ -40,16 +43,16 @@ function Map() {
   // TEMP
   console.log(setTimeOfDay);
 
-  const generateRoute = async (possibleEndPoint?: Location) => {
 
-    const routeEndPoint = possibleEndPoint || endPoint;
+  const generateRoute = async (routeStartPoint: Location, routeEndPoint: Location) => {
 
     // fetch route from backend
-    const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${startPoint?.location_id}&end_location_id=${routeEndPoint?.location_id}&time_of_day=${timeOfDay}`)
+    const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}`)
 
     // handle error
     if (res.data.error) {
       console.error(res.data.error);
+      setError(`There was an error fetching the route between ${routeStartPoint.location_id} and ${routeEndPoint.location_id} - ${res.data.error}`);
       return;
     }
 
@@ -91,6 +94,7 @@ function Map() {
       })
       .catch(error => {
         console.error('There was an error fetching the data!', error);
+        setError(`There was an error fetching location data - ${error}`);
       });
   }, []);
 
@@ -112,6 +116,7 @@ function Map() {
       )
       .catch(error => {
         console.error('There was an error fetching the data!', error);
+        setError(`There was an error fetching intersection data - ${error}`);
       });
     }, []);
 
@@ -145,16 +150,19 @@ function Map() {
       })
       .catch(error => {
         console.error('There was an error fetching the data!', error);
+        setError(`There was an error fetching connection data - ${error}`);
       });
   }, []);
 
-  const getFlow = async (location_id: number) => {
-    return await axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location_id}&time=${timeOfDay}`)
+  const getFlow = async (location: Location) => {
+        console.error('There was an error fetching the data!', error);
+    return await axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location.location_id}&time=${timeOfDay}`)
       .then(flow => {
         return flow.data.flow;
       })
       .catch(error => {
         console.error('There was an error fetching the data!', error);
+        setError(`There was an error fetching the traffic flow for ${location.name} - ${error}`);
       });
   }
 
@@ -173,13 +181,13 @@ function Map() {
     setStartPoint(location);
 
     if (location !== null) {
-      const flow = await getFlow(location.location_id);
+      const flow = await getFlow(location);
       if (flow !== undefined) {
         location.flow = flow;
       }
 
       if (endPoint !== null) {
-        generateRoute();
+        generateRoute(location, endPoint);
       }
     }
   };
@@ -188,18 +196,25 @@ function Map() {
     setEndPoint(location);
 
     if (location !== null) {
-      const flow = await getFlow(location.location_id);
+      const flow = await getFlow(location);
       if (flow !== undefined) {
         location.flow = flow;
       }
 
       if (startPoint !== null) {
-        generateRoute();
+        generateRoute(startPoint, location);
       }
     }
   };
 
   function getRandomColor() {
+
+    // TEMP
+    if (DEMO) {
+      return "blue";
+    }
+
+
     const letters = '0123456789ABCDEF';
     let color = '#';
     for (let i = 0; i < 6; i++) {
@@ -231,7 +246,9 @@ function Map() {
 
   return (
     <div className='map-container'>
-      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} locations={locations} />
+      {error && <div className="error-banner">{error}</div>}
+
+      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)} locations={locations} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
         <TileLayer
@@ -243,35 +260,23 @@ function Map() {
         {locations.map(location => (
             <Marker key={location.location_id} position={[location.lat, location.long]} icon={dotIcon}
               eventHandlers={{
-                click: async () => {
-                  if (startPoint === null) {
-                    setStartPoint(location);
-
-                    if (endPoint === null) {
-                      generateRoute(location);
-                    }
-
-                  } else if (endPoint === null) {
-                    setEndPoint(location);
-                    generateRoute(location);
-                  }
-                  
-                  const flow = await getFlow(location.location_id);
-
-                  if (flow === undefined) {
-                    console.log(`Traffic flow at ${location.site_number} - ${location.name} is not available`);
-                    return;
-                  }
-                  
-                  const flowStr = flow.toFixed(0);
-                  location.flow = flow;
-                  console.log(`Predicted traffic flow at ${location.site_number} - ${location.name} is ${flowStr} at 12:00`);
-
+                mouseover: (e) => {
+                  const marker = e.target;
+                  marker.openPopup();
                 }
               }}
             >
               <Popup>
-                {location.site_number} - {location.name}
+                <div>
+                  <strong>{location.site_number}</strong> - {location.name}
+                  <br />
+                  <button onClick={() => {
+                    setStartPointAndFetchTraffic(location);
+                  }}>Set Start Point</button>
+                  <button onClick={() => {
+                    setEndPointAndFetchTraffic(location);
+                  }}>Set Destination</button>
+                </div>
               </Popup>
             </Marker>
         ))}
