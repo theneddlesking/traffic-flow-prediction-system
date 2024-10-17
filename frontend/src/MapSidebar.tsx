@@ -86,12 +86,12 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
 
   function getTimeStringFromHours(hoursTaken: number) {
     
-    const inMinutes = hoursTaken * 60;
+    const inMinutes = parseInt((hoursTaken * 60).toFixed(0));
 
     // eg. 73
     // 73 % 60 = 13
 
-    const minutes = inMinutes % 60
+    const minutes = inMinutes % 60;
 
     // (73 - 13) / 60 = 1
 

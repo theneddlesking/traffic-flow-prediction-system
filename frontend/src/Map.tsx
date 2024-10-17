@@ -40,6 +40,8 @@ function Map() {
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
 
+  const [hoursTaken, setHoursTaken] = useState<number | null>(null);
+
 
 
   const generateRoute = async (routeStartPoint: Location, routeEndPoint: Location) => {
@@ -68,6 +70,8 @@ function Map() {
     });
        
     setWaypoints(adjustedWaypoints);
+
+    setHoursTaken(routeHours);
 
     console.log(`Route takes ${routeHours} hours`);
   }
@@ -246,7 +250,7 @@ function Map() {
     <div className='map-container'>
       {error && <div className="error-banner">{error}</div>}
 
-      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)} locations={locations} />
+      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)} locations={locations} hoursTaken={hoursTaken || 0} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
         <TileLayer
@@ -292,11 +296,10 @@ function Map() {
       {/* draws the route */}
       {/* <Polyline positions={waypointCoordinates} pathOptions={{color: getRandomColor() }} />     */}
       {
-        waypointCoordinates.map((segment, index) => (
-          <Polyline key={index} positions={segment} pathOptions={{color: getRandomColor() }} />
+        waypointCoordinates.map((segment: unknown, index) => (
+          <Polyline key={index} positions={segment as L.LatLng[]} pathOptions={{color: getRandomColor() }} />
         ))
       }
-
 
 
       </MapContainer>
