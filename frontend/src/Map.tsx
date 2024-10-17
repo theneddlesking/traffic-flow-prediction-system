@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Icon } from 'leaflet';
+import { Icon, LatLng } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
@@ -37,6 +37,8 @@ function Map() {
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
 
+  // TEMP
+  console.log(setTimeOfDay);
 
   const generateRoute = async (possibleEndPoint?: Location) => {
 
@@ -287,8 +289,8 @@ function Map() {
       {/* draws the route */}
       {/* <Polyline positions={waypointCoordinates} pathOptions={{color: getRandomColor() }} />     */}
       {
-        waypointCoordinates.map((segment, index) => (
-          <Polyline key={index} positions={segment} pathOptions={{color: getRandomColor() }} />
+        waypointCoordinates.map((segment: unknown, index) => (
+          <Polyline key={index} positions={segment as LatLng[]} pathOptions={{color: getRandomColor() }} />
         ))
       }
 
