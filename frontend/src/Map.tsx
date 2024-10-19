@@ -114,17 +114,6 @@ function Map() {
       });
   }, []);
 
-  const getFlow = async (location: Location) => {
-        console.error('There was an error fetching the data!', error);
-    return await axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location.location_id}&time=${timeOfDay}`)
-      .then(flow => {
-        return flow.data.flow;
-      })
-      .catch(error => {
-        console.error('There was an error fetching the data!', error);
-        setError(`There was an error fetching the traffic flow for ${location.name} - ${error}`);
-      });
-  }
 
   const dotIcon = new Icon({
     iconUrl: 'https://img.icons8.com/?size=100&id=24801&format=png&color=000000',
@@ -140,30 +129,16 @@ function Map() {
   const setStartPointAndFetchTraffic = async (location: Location | null) => {
     setStartPoint(location);
 
-    if (location !== null) {
-      const flow = await getFlow(location);
-      if (flow !== undefined) {
-        location.flow = flow;
-      }
-
-      if (endPoint !== null) {
+    if (location !== null && endPoint !== null) {
         generateRoute(location, endPoint);
-      }
     }
   };
 
   const setEndPointAndFetchTraffic = async (location: Location | null) => {
     setEndPoint(location);
 
-    if (location !== null) {
-      const flow = await getFlow(location);
-      if (flow !== undefined) {
-        location.flow = flow;
-      }
-
-      if (startPoint !== null) {
-        generateRoute(startPoint, location);
-      }
+    if (location !== null && startPoint !== null) {
+      generateRoute(startPoint, location);
     }
   };
 
