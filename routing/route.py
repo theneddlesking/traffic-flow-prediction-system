@@ -14,3 +14,11 @@ class Route:
             "waypoints": [point.as_json() for point in self.waypoints],
             "hours_taken": self.hours_taken,
         }
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Route):
+            return NotImplemented
+
+        return (
+            self.waypoints == other.waypoints and self.hours_taken == other.hours_taken
+        )
