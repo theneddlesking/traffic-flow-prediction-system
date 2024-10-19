@@ -1,5 +1,6 @@
 from routing.point import RoutingPoint
 from routing.road_network import RoadNetwork
+from routing.route import Route
 from routing.time_estimator import TimeEstimator
 
 
@@ -15,7 +16,7 @@ class Router:
         end: RoutingPoint,
         time_of_day: str,
         network: RoadNetwork,
-    ) -> tuple[list[RoutingPoint], int]:
+    ) -> Route:
         """Find the shortest route between two RoutingPoints and time taken in hours."""
         raise NotImplementedError("find_route method must be implemented by subclass.")
 
@@ -49,3 +50,15 @@ class Router:
                 time_graph[key][neighbour.location_id] = hours_taken
 
         return time_graph
+
+    async def find_best_routes(
+        self,
+        start: RoutingPoint,
+        end: RoutingPoint,
+        time_of_day: str,
+        network: RoadNetwork,
+    ) -> list[Route]:
+        """Find the best routes between two points."""
+        raise NotImplementedError(
+            "find_best_routes method must be implemented by subclass."
+        )

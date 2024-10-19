@@ -37,3 +37,8 @@ export type Connection = {
   direction: string;
   length: number;
 };
+
+export type Route = {
+  waypoints: RoutingPoint[];
+  hours_taken: number;
+};
