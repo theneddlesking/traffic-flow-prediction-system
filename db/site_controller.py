@@ -6,6 +6,8 @@ from routing.location import Location
 from routing.point import RoutingPoint
 from routing.road_network import RoadNetwork
 
+from coordinate_offset import LAT_OFFSET, LONG_OFFSET
+
 
 class SiteController(Controller):
     """SiteController class"""
@@ -16,16 +18,28 @@ class SiteController(Controller):
 
     def get_locations(self):
         """Get all locations."""
-        return [
+        locations = [
             Location(*location_tuple) for location_tuple in self.model.get_locations()
         ]
+
+        # apply offset to locations
+        for location in locations:
+            location.apply_offset(LAT_OFFSET, LONG_OFFSET)
+
+        return locations
 
     def get_location(self, location_id: int):
         """Get a location."""
         location_tuple = self.model.get_location(location_id)
 
         if location_tuple:
-            return Location(*location_tuple)
+
+            location = Location(*location_tuple)
+
+            # apply offset to location
+            location.apply_offset(LAT_OFFSET, LONG_OFFSET)
+
+            return location
 
         return None
 

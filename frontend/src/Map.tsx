@@ -58,16 +58,7 @@ function Map() {
 
     const routeHours = res.data.hours_taken;
 
-    const latOffset = 0.00151;
-    const longOffset = 0.0013;
-
-    const adjustedWaypoints = routeWaypoints.map(waypoint => {
-      waypoint.lat += latOffset;
-      waypoint.long += longOffset;
-      return waypoint;
-    });
-       
-    setWaypoints(adjustedWaypoints);
+    setWaypoints(routeWaypoints);
 
     setHoursTaken(routeHours);
 
@@ -77,18 +68,8 @@ function Map() {
   useEffect(() => {
     axios.get<{ locations: Location[] }>('http://127.0.0.1:8000/site/locations')
       .then(locations => {
-        // remap position based on offset
-        const latOffset = 0.00151;
-        const longOffset = 0.0013;
-
         console.log("original locations");
         console.log(locations.data.locations);
-
-        // for some reason the long lat is slightly off
-        locations.data.locations.forEach(location => {
-          location.lat += latOffset;
-          location.long += longOffset;
-        });
 
         setLocations(locations.data.locations);
       })
@@ -104,10 +85,6 @@ function Map() {
 
         const intersectionsArray = intersections.data.intersections;
 
-        intersectionsArray.forEach(intersection => {
-          return remapIntersection(intersection);
-        });
-
         console.log("intersections");
         console.log(intersectionsArray);
 
@@ -120,31 +97,14 @@ function Map() {
       });
     }, []);
 
-  function remapIntersection(intersection: Intersection) {
-    const latOffset = 0.00151;
-    const longOffset = 0.0013;
-
-    intersection.lat += latOffset;
-    intersection.long += longOffset;
-
-    intersection.points.forEach(point => {
-      point.lat += latOffset;
-      point.long += longOffset;
-    });
-
-    return intersection
-  }
-
   useEffect(() => {
     axios.get<ConnectionResponse>('http://127.0.0.1:8000/site/connections')
       .then(connections => {
 
         const connectionsArr = connections.data.connections;
 
-        connectionsArr.forEach(connection => {
-          connection.intersection = remapIntersection(connection.intersection);
-          connection.other_intersection = remapIntersection(connection.other_intersection);
-        });
+        console.log("connections");
+        console.log(connectionsArr);
 
         setConnections(connectionsArr);
       })
