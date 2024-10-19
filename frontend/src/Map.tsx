@@ -6,12 +6,11 @@ import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet'
 import './App.css';
 
 import MapSidebar from './MapSidebar';
-import type { Connection, Intersection, Location, RoutingPoint } from './types';
+import type { Connection, Intersection, Location, Route, RoutingPoint } from './types';
 
 
 type RoutingResponse = {
-  waypoints: RoutingPoint[];
-  hours_taken: number;
+  routes: Route[];
   error?: string;
 }
 
@@ -54,9 +53,11 @@ function Map() {
       return;
     }
 
-    const routeWaypoints = res.data.waypoints;
+    const bestRoute = res.data.routes[0];
 
-    const routeHours = res.data.hours_taken;
+    const routeWaypoints = bestRoute.waypoints;
+
+    const routeHours = bestRoute.hours_taken;
 
     setWaypoints(routeWaypoints);
 
