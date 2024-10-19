@@ -34,7 +34,6 @@ function Map() {
   const SHOW_INTERSECTIONS = false;
   const SHOW_CONNECTIONS = false;
 
-
   const [timeOfDay, setTimeOfDay] = useState('12:00');
 
 
