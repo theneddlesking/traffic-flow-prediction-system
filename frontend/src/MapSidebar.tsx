@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import type { Location } from './types';
+import type { Location, RoutingPoint } from './types';
 
 import {
   Menu,
@@ -23,10 +23,11 @@ type MapSidebarProps = {
   setTimeOfDay: (time: string) => void;
   locations: Location[];
   hoursTaken: number;
+  waypoints: RoutingPoint[];
 };
 
 
-function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, locations, hoursTaken }: MapSidebarProps) {
+function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, locations, hoursTaken, waypoints }: MapSidebarProps) {
   const [startPointInput, setStartPointInput] = useState('');
   const [endPointInput, setEndPointInput] = useState('');
 
@@ -105,6 +106,13 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
     return `${hours}${hourStr} ${minutes}min`;
   }
 
+  // filter to only have one per scat site
+  const waypointsPerScat = waypoints.filter((waypoint, index, self) =>
+    index === self.findIndex((t) => (
+      t.site_number === waypoint.site_number
+    ))
+  );
+
   return (
     <>
       <div id="header">
@@ -158,28 +166,24 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
                 ))}
               </datalist>
             </Menu>
-            {startPoint && (
-              <Menu>
-                <h2>Start Point</h2>
-                <p>{startPoint.site_number} - {startPoint.name}</p>
-                <p>Latitude: {startPoint.lat}</p>
-                <p>Longitude: {startPoint.long}</p>
-                <p>Traffic flow at {timeOfDay}: {startPoint.flow}</p>
-              </Menu>
-            )}
-            {endPoint && (
-              <Menu>
-                <h2>Destination</h2>
-                <p>{endPoint.site_number} - {endPoint.name}</p>
-                <p>Latitude: {endPoint.lat}</p>
-                <p>Longitude: {endPoint.long}</p>
-                <p>Traffic flow at {timeOfDay}: {endPoint.flow}</p>
-              </Menu>
-            )}
             {startPoint && endPoint && (
               <Menu>
-                <h2>Route Information</h2>
-                <p>Time Taken: {getTimeStringFromHours(hoursTaken)}</p>
+                <p className="time">{getTimeStringFromHours(hoursTaken)}</p>
+
+                <h2>Directions</h2>
+
+                {/* render waypoints */}
+                {waypointsPerScat.map(waypoint => (
+                  <div key={waypoint.location_id}>
+                    <p className="waypoint">{waypoint.site_number} - {waypoint.street_name} / {waypoint.other_street_name}</p>
+                    {/* vertical line */}
+                    {
+                      waypointsPerScat[waypointsPerScat.length - 1] !== waypoint &&
+                      <div className="vertical-line">|</div>
+                    }
+                  </div>
+                ))}
+
               </Menu>
             )}
           </SidebarContent>

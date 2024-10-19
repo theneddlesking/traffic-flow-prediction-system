@@ -1,3 +1,5 @@
+export type Direction = "N" | "S" | "E" | "W" | "NE" | "NW" | "SE" | "SW";
+
 export type Location = {
   location_id: number;
   site_number: number;
@@ -15,7 +17,7 @@ export type RoutingPoint = {
   street_name: string;
   other_street_name: string;
   direction: {
-    value: string;
+    value: Direction;
   };
   street_names: string[];
 };
@@ -31,7 +33,7 @@ export type Connection = {
   intersection: Intersection;
   other_intersection: Intersection;
   along_street: string;
-  speed_limit: number;
+  speed_limit: Direction;
   direction: string;
   length: number;
 };

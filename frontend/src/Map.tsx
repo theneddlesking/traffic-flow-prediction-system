@@ -6,11 +6,11 @@ import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet'
 import './App.css';
 
 import MapSidebar from './MapSidebar';
-import type { Connection, Intersection, Location } from './types';
+import type { Connection, Intersection, Location, RoutingPoint } from './types';
 
 
 type RoutingResponse = {
-  waypoints: Location[];
+  waypoints: RoutingPoint[];
   hours_taken: number;
   error?: string;
 }
@@ -27,7 +27,7 @@ function Map() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [startPoint, setStartPoint] = useState<Location | null>(null);
   const [endPoint, setEndPoint] = useState<Location | null>(null);
-  const [waypoints, setWaypoints] = useState<Location[]>([]);
+  const [waypoints, setWaypoints] = useState<RoutingPoint[]>([]);
   const [intersections, setIntersections] = useState<Intersection[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
 
@@ -225,7 +225,7 @@ function Map() {
 
   const waypointCoordinates = getLineSegments(waypoints);
 
-  function getLineSegments(waypoints: Location[]) {
+  function getLineSegments(waypoints: RoutingPoint[]) {
     const segments = [];
 
     console.log('waypoints');
@@ -248,7 +248,7 @@ function Map() {
     <div className='map-container'>
       {error && <div className="error-banner">{error}</div>}
 
-      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)} locations={locations} hoursTaken={hoursTaken || 0} />
+      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)} locations={locations} hoursTaken={hoursTaken || 0} waypoints={waypoints} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
         <TileLayer
