@@ -14,3 +14,8 @@ class Location:
         self.site_number = site_number
         self.lat = lat
         self.long = long
+
+    def apply_offset(self, lat_offset: float, long_offset: float):
+        """Apply the offset to the location."""
+        self.lat += lat_offset
+        self.long += long_offset
