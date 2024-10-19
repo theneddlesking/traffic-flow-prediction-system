@@ -137,4 +137,9 @@ class RoadNetwork:
 
                             connections.add(connection)
 
+        # remove unreasonable connections
+        connections = {
+            connection for connection in connections if not connection.unreasonable()
+        }
+
         return connections

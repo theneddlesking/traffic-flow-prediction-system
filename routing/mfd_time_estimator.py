@@ -16,9 +16,7 @@ class MFDTimeEstimator(TimeEstimator):
     ) -> int:
         """Estimate the time taken to travel between two locations."""
 
-        # TODO later add estimators for capacity, free flow time, alpha, etc.
-
-        alpha = 0.5
+        # TODO later add estimators for capacity, free flow time etc.
         free_flow_speed = 60
 
         # if we have the same site number this means that we are at the same intersection
@@ -57,7 +55,7 @@ class MFDTimeEstimator(TimeEstimator):
         capacity = (start_capacity + end_capacity) / 2
 
         prop = self.mfd.compute_proportion(
-            flow=flow, capacity=capacity, alpha=alpha, free_flow_speed=free_flow_speed
+            flow=flow, capacity=capacity, free_flow_speed=free_flow_speed
         )
 
         speed = prop * free_flow_speed

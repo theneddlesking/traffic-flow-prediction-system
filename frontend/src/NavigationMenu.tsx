@@ -3,14 +3,12 @@ import './App.css';
 import type { Location } from './types';
 
 type NavigationMenuProps = {
-  startPoint: Location | null;
-  endPoint: Location | null;
   setStartPoint: (coordinates: Location | null) => void;
   setEndPoint: (coordinates: Location | null) => void;
   locations: Location[];
 };
 
-function NavigationMenu({ startPoint, endPoint, setStartPoint, setEndPoint, locations }: NavigationMenuProps) {
+function NavigationMenu({ setStartPoint, setEndPoint, locations }: NavigationMenuProps) {
 
   const validateStartInput = (input: string) => {
     if (input === '') {

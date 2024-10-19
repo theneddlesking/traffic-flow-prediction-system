@@ -19,7 +19,9 @@ async def get_route(start_location_id: int, end_location_id: int, time_of_day: s
     """Get route"""
     # TODO add some caching logic
 
-    astar_router = AStarRouter(MFDTimeEstimator(BasicMFD))
+    # NOTE: alpha and beta are parameters that can be tuned to fit the MFD to the data
+    # TODO maybe we could add a way to tune these parameters
+    astar_router = AStarRouter(MFDTimeEstimator(BasicMFD(alpha=1, beta=0.3)))
 
     locations = site_controller.get_locations()
 
@@ -30,14 +32,13 @@ async def get_route(start_location_id: int, end_location_id: int, time_of_day: s
     start = network.points_dict[start_location_id]
     goal = network.points_dict[end_location_id]
 
-    path, time_taken = await astar_router.find_route(start, goal, time_of_day, network)
+    routes = await astar_router.find_best_routes(start, goal, time_of_day, network)
 
-    if path is None:
+    if len(routes) == 0:
         return {
             "error": "No path found. Could be because the start or end location is invalid."
         }
 
-    return {
-        "waypoints": path,
-        "hours_taken": time_taken,
-    }
+    routes_json = [route.as_json() for route in routes]
+
+    return {"routes": routes_json}

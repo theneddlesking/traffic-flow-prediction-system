@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import type { Location } from './types';
+import type { Location, RoutingPoint } from './types';
 
 import {
   Menu,
@@ -19,15 +19,19 @@ type MapSidebarProps = {
   endPoint: Location | null;
   setStartPoint: (coordinates: Location | null) => void;
   setEndPoint: (coordinates: Location | null) => void;
+  timeOfDay: string;
+  setTimeOfDay: (time: string) => void;
   locations: Location[];
+  hoursTaken: number;
+  waypoints: RoutingPoint[];
 };
 
 
-function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, locations }: MapSidebarProps) {
+function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, locations, hoursTaken, waypoints }: MapSidebarProps) {
   const [startPointInput, setStartPointInput] = useState('');
   const [endPointInput, setEndPointInput] = useState('');
 
-  const [menuCollapse, setMenuCollapse] = useState(true);
+  const [menuCollapse, setMenuCollapse] = useState(false);
   const menuIconClick = () => {
     return menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
   };
@@ -81,6 +85,34 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
     }
   };
 
+  function getTimeStringFromHours(hoursTaken: number) {
+    
+    const inMinutes = parseInt((hoursTaken * 60).toFixed(0));
+
+    // eg. 73
+    // 73 % 60 = 13
+
+    const minutes = inMinutes % 60;
+
+    // (73 - 13) / 60 = 1
+
+    const hours = (inMinutes - minutes) / 60
+
+
+    const hourStr = hours == 1 ? "hr" : "hrs";
+
+    // eg. 1hr 5min
+
+    return `${hours}${hourStr} ${minutes}min`;
+  }
+
+  // filter to only have one per scat site
+  const waypointsPerScat = waypoints.filter((waypoint, index, self) =>
+    index === self.findIndex((t) => (
+      t.site_number === waypoint.site_number
+    ))
+  );
+
   return (
     <>
       <div id="header">
@@ -121,6 +153,12 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
                   onChange={(e) => validateEndInput(e.target.value)}
                   list="locations"
                 />
+                <input
+                  type="time"
+                  id="timeOfDay"
+                  value={timeOfDay}
+                  onChange={(e) => setTimeOfDay(e.target.value)}
+                />
               </div>
               <datalist id="locations">
                 {locations.map(location => (
@@ -128,29 +166,24 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, location
                 ))}
               </datalist>
             </Menu>
-            {startPoint && (
-              <Menu>
-                <h2>Start Point</h2>
-                <p>{startPoint.site_number} - {startPoint.name}</p>
-                <p>Latitude: {startPoint.lat}</p>
-                <p>Longitude: {startPoint.long}</p>
-                <p>Traffic flow at 12:00: {startPoint.flow}</p>
-              </Menu>
-            )}
-            {endPoint && (
-              <Menu>
-                <h2>Destination</h2>
-                <p>{endPoint.site_number} - {endPoint.name}</p>
-                <p>Latitude: {endPoint.lat}</p>
-                <p>Longitude: {endPoint.long}</p>
-                <p>Traffic flow at 12:00: {endPoint.flow}</p>
-              </Menu>
-            )}
             {startPoint && endPoint && (
               <Menu>
-                <h2>Route Information</h2>
-                <p>Information on route *here*</p>
-                <p>Only visible when both start point and destination location is present</p>
+                <p className="time">{getTimeStringFromHours(hoursTaken)}</p>
+
+                <h2>Directions</h2>
+
+                {/* render waypoints */}
+                {waypointsPerScat.map(waypoint => (
+                  <div key={waypoint.location_id}>
+                    <p className="waypoint">{waypoint.site_number} - {waypoint.street_name} / {waypoint.other_street_name}</p>
+                    {/* vertical line */}
+                    {
+                      waypointsPerScat[waypointsPerScat.length - 1] !== waypoint &&
+                      <div className="vertical-line">|</div>
+                    }
+                  </div>
+                ))}
+
               </Menu>
             )}
           </SidebarContent>
