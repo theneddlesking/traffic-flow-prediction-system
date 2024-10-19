@@ -4,13 +4,6 @@ from routing.mfd import MFD
 class BasicMFD(MFD):
     """Basic implementation of a Macroscopic Fundamental Diagram (MFD).
 
-<<<<<<< Updated upstream
-    @staticmethod
-    def compute_proportion(
-        flow: int, capacity: int, free_flow_speed: int, alpha: int
-    ) -> int:
-        return 1 + alpha * (flow / capacity)
-=======
     Alpha and beta are parameters that can be tuned to fit the MFD to the data.
     Alpha determines the slope of the MFD, and beta determines the minimum proportion of the MFD.
     """
@@ -36,4 +29,3 @@ class BasicMFD(MFD):
         prop = max(lower_bound, min(upper_bound, prop))
 
         return prop
->>>>>>> Stashed changes

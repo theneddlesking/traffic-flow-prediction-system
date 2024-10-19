@@ -80,6 +80,10 @@ class IntersectionConnection:
         intersection1_lat, intersection1_long = self.intersection.get_position()
         intersection2_lat, intersection2_long = self.other_intersection.get_position()
 
+        return calculate_bearing(
+            intersection1_lat, intersection1_long, intersection2_lat, intersection2_long
+        )
+
     def unreasonable(self, sensible_length_km: int = 5) -> bool:
         """Check if the connection is unreasonable given its geometry."""
         # if the connections is very long and very angled
