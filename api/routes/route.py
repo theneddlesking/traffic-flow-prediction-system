@@ -19,7 +19,9 @@ async def get_route(start_location_id: int, end_location_id: int, time_of_day: s
     """Get route"""
     # TODO add some caching logic
 
-    astar_router = AStarRouter(MFDTimeEstimator(BasicMFD))
+    # NOTE: alpha and beta are parameters that can be tuned to fit the MFD to the data
+    # TODO maybe we could add a way to tune these parameters
+    astar_router = AStarRouter(MFDTimeEstimator(BasicMFD(alpha=1, beta=0.3)))
 
     locations = site_controller.get_locations()
 
