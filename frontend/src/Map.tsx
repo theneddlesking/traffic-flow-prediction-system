@@ -6,11 +6,11 @@ import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet'
 import './App.css';
 
 import MapSidebar from './MapSidebar';
-import type { Connection, Intersection, Location } from './types';
+import type { Connection, Intersection, Location, RoutingPoint } from './types';
 
 
 type RoutingResponse = {
-  waypoints: Location[];
+  waypoints: RoutingPoint[];
   hours_taken: number;
   error?: string;
 }
@@ -27,26 +27,30 @@ function Map() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [startPoint, setStartPoint] = useState<Location | null>(null);
   const [endPoint, setEndPoint] = useState<Location | null>(null);
-  const [waypoints, setWaypoints] = useState<Location[]>([]);
+  const [waypoints, setWaypoints] = useState<RoutingPoint[]>([]);
   const [intersections, setIntersections] = useState<Intersection[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
 
+  const [error, setError] = useState<string | null>(null);
+
   const SHOW_INTERSECTIONS = false;
   const SHOW_CONNECTIONS = false;
+  const DEMO = true;
+
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
 
+  const [hoursTaken, setHoursTaken] = useState<number | null>(null);
 
-  const generateRoute = async (possibleEndPoint?: Location) => {
-
-    const routeEndPoint = possibleEndPoint || endPoint;
+  const generateRoute = async (routeStartPoint: Location, routeEndPoint: Location) => {
 
     // fetch route from backend
-    const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${startPoint?.location_id}&end_location_id=${routeEndPoint?.location_id}&time_of_day=${timeOfDay}`)
+    const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}`)
 
     // handle error
     if (res.data.error) {
       console.error(res.data.error);
+      setError(`There was an error fetching the route between ${routeStartPoint.location_id} and ${routeEndPoint.location_id} - ${res.data.error}`);
       return;
     }
 
@@ -54,16 +58,9 @@ function Map() {
 
     const routeHours = res.data.hours_taken;
 
-    const latOffset = 0.00151;
-    const longOffset = 0.0013;
+    setWaypoints(routeWaypoints);
 
-    const adjustedWaypoints = routeWaypoints.map(waypoint => {
-      waypoint.lat += latOffset;
-      waypoint.long += longOffset;
-      return waypoint;
-    });
-       
-    setWaypoints(adjustedWaypoints);
+    setHoursTaken(routeHours);
 
     console.log(`Route takes ${routeHours} hours`);
   }
@@ -71,23 +68,14 @@ function Map() {
   useEffect(() => {
     axios.get<{ locations: Location[] }>('http://127.0.0.1:8000/site/locations')
       .then(locations => {
-        // remap position based on offset
-        const latOffset = 0.00151;
-        const longOffset = 0.0013;
-
         console.log("original locations");
         console.log(locations.data.locations);
-
-        // for some reason the long lat is slightly off
-        locations.data.locations.forEach(location => {
-          location.lat += latOffset;
-          location.long += longOffset;
-        });
 
         setLocations(locations.data.locations);
       })
       .catch(error => {
         console.error('There was an error fetching the data!', error);
+        setError(`There was an error fetching location data - ${error}`);
       });
   }, []);
 
@@ -97,10 +85,6 @@ function Map() {
 
         const intersectionsArray = intersections.data.intersections;
 
-        intersectionsArray.forEach(intersection => {
-          return remapIntersection(intersection);
-        });
-
         console.log("intersections");
         console.log(intersectionsArray);
 
@@ -109,23 +93,9 @@ function Map() {
       )
       .catch(error => {
         console.error('There was an error fetching the data!', error);
+        setError(`There was an error fetching intersection data - ${error}`);
       });
     }, []);
-
-  function remapIntersection(intersection: Intersection) {
-    const latOffset = 0.00151;
-    const longOffset = 0.0013;
-
-    intersection.lat += latOffset;
-    intersection.long += longOffset;
-
-    intersection.points.forEach(point => {
-      point.lat += latOffset;
-      point.long += longOffset;
-    });
-
-    return intersection
-  }
 
   useEffect(() => {
     axios.get<ConnectionResponse>('http://127.0.0.1:8000/site/connections')
@@ -133,25 +103,26 @@ function Map() {
 
         const connectionsArr = connections.data.connections;
 
-        connectionsArr.forEach(connection => {
-          connection.intersection = remapIntersection(connection.intersection);
-          connection.other_intersection = remapIntersection(connection.other_intersection);
-        });
+        console.log("connections");
+        console.log(connectionsArr);
 
         setConnections(connectionsArr);
       })
       .catch(error => {
         console.error('There was an error fetching the data!', error);
+        setError(`There was an error fetching connection data - ${error}`);
       });
   }, []);
 
-  const getFlow = async (location_id: number) => {
-    return await axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location_id}&time=${timeOfDay}`)
+  const getFlow = async (location: Location) => {
+        console.error('There was an error fetching the data!', error);
+    return await axios.get<{ flow: number }>(`http://127.0.0.1:8000/site/flow?location_id=${location.location_id}&time=${timeOfDay}`)
       .then(flow => {
         return flow.data.flow;
       })
       .catch(error => {
         console.error('There was an error fetching the data!', error);
+        setError(`There was an error fetching the traffic flow for ${location.name} - ${error}`);
       });
   }
 
@@ -170,13 +141,13 @@ function Map() {
     setStartPoint(location);
 
     if (location !== null) {
-      const flow = await getFlow(location.location_id);
+      const flow = await getFlow(location);
       if (flow !== undefined) {
         location.flow = flow;
       }
 
       if (endPoint !== null) {
-        generateRoute();
+        generateRoute(location, endPoint);
       }
     }
   };
@@ -185,18 +156,25 @@ function Map() {
     setEndPoint(location);
 
     if (location !== null) {
-      const flow = await getFlow(location.location_id);
+      const flow = await getFlow(location);
       if (flow !== undefined) {
         location.flow = flow;
       }
 
       if (startPoint !== null) {
-        generateRoute();
+        generateRoute(startPoint, location);
       }
     }
   };
 
   function getRandomColor() {
+
+    // TEMP
+    if (DEMO) {
+      return "blue";
+    }
+
+
     const letters = '0123456789ABCDEF';
     let color = '#';
     for (let i = 0; i < 6; i++) {
@@ -207,7 +185,7 @@ function Map() {
 
   const waypointCoordinates = getLineSegments(waypoints);
 
-  function getLineSegments(waypoints: Location[]) {
+  function getLineSegments(waypoints: RoutingPoint[]) {
     const segments = [];
 
     console.log('waypoints');
@@ -228,7 +206,9 @@ function Map() {
 
   return (
     <div className='map-container'>
-      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} locations={locations} />
+      {error && <div className="error-banner">{error}</div>}
+
+      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)} locations={locations} hoursTaken={hoursTaken || 0} waypoints={waypoints} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
         <TileLayer
@@ -240,35 +220,23 @@ function Map() {
         {locations.map(location => (
             <Marker key={location.location_id} position={[location.lat, location.long]} icon={dotIcon}
               eventHandlers={{
-                click: async () => {
-                  if (startPoint === null) {
-                    setStartPoint(location);
-
-                    if (endPoint === null) {
-                      generateRoute(location);
-                    }
-
-                  } else if (endPoint === null) {
-                    setEndPoint(location);
-                    generateRoute(location);
-                  }
-                  
-                  const flow = await getFlow(location.location_id);
-
-                  if (flow === undefined) {
-                    console.log(`Traffic flow at ${location.site_number} - ${location.name} is not available`);
-                    return;
-                  }
-                  
-                  const flowStr = flow.toFixed(0);
-                  location.flow = flow;
-                  console.log(`Predicted traffic flow at ${location.site_number} - ${location.name} is ${flowStr} at 12:00`);
-
+                mouseover: (e) => {
+                  const marker = e.target;
+                  marker.openPopup();
                 }
               }}
             >
               <Popup>
-                {location.site_number} - {location.name}
+                <div>
+                  <strong>{location.site_number}</strong> - {location.name}
+                  <br />
+                  <button onClick={() => {
+                    setStartPointAndFetchTraffic(location);
+                  }}>Set Start Point</button>
+                  <button onClick={() => {
+                    setEndPointAndFetchTraffic(location);
+                  }}>Set Destination</button>
+                </div>
               </Popup>
             </Marker>
         ))}
@@ -286,11 +254,10 @@ function Map() {
       {/* draws the route */}
       {/* <Polyline positions={waypointCoordinates} pathOptions={{color: getRandomColor() }} />     */}
       {
-        waypointCoordinates.map((segment, index) => (
-          <Polyline key={index} positions={segment} pathOptions={{color: getRandomColor() }} />
+        waypointCoordinates.map((segment: unknown, index) => (
+          <Polyline key={index} positions={segment as L.LatLng[]} pathOptions={{color: getRandomColor() }} />
         ))
       }
-
 
 
       </MapContainer>
