@@ -29,12 +29,12 @@ function Map() {
   const [waypoints, setWaypoints] = useState<RoutingPoint[]>([]);
   const [intersections, setIntersections] = useState<Intersection[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
+  const [routes, setRoutes] = useState<Route[]>([]);
 
   const [error, setError] = useState<string | null>(null);
 
   const SHOW_INTERSECTIONS = false;
   const SHOW_CONNECTIONS = false;
-  const DEMO = true;
 
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
@@ -62,6 +62,8 @@ function Map() {
     setWaypoints(routeWaypoints);
 
     setHoursTaken(routeHours);
+
+    setRoutes(res.data.routes);
 
     console.log(`Route takes ${routeHours} hours`);
   }
@@ -143,23 +145,20 @@ function Map() {
     }
   };
 
-  function getRandomColor() {
-
-    // TEMP
-    if (DEMO) {
-      return "blue";
-    }
-
-
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+  function rgbaString(color: string, opacity: number) {
+    return `rgba(${parseInt(color.slice(-6,-4), 16)}, ${parseInt(color.slice(-4,-2), 16)}, ${parseInt(color.slice(-2), 16)}, ${opacity})`;
   }
 
-  const waypointCoordinates = getLineSegments(waypoints);
+  function getRouteColor(routeIndex: number) {
+
+    const blueHex = '0000FF';
+
+    // lower route index is higher opacity
+
+    const opacity = 1 - (routeIndex / routes.length) * 2;
+
+    return rgbaString(blueHex, opacity);
+  }
 
   function getLineSegments(waypoints: RoutingPoint[]) {
     const segments = [];
@@ -227,13 +226,14 @@ function Map() {
           <Polyline key={connection.intersection.lat + connection.other_intersection.lat} positions={[[connection.intersection.lat, connection.intersection.long], [connection.other_intersection.lat, connection.other_intersection.long]]} pathOptions={{color: '#f0bab4'}} />
         ))}
 
-      {/* draws the route */}
+      {/* draws the routes */}
       {/* <Polyline positions={waypointCoordinates} pathOptions={{color: getRandomColor() }} />     */}
       {
-        waypointCoordinates.map((segment: unknown, index) => (
-          <Polyline key={index} positions={segment as L.LatLng[]} pathOptions={{color: getRandomColor() }} />
+        routes.map((route, index) => (
+            <Polyline key={index} positions={getLineSegments(route.waypoints) as unknown as L.LatLng[]} pathOptions={{color: getRouteColor(index) }} />
         ))
       }
+
 
 
       </MapContainer>
