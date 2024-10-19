@@ -8,4 +8,4 @@ class BasicMFD(MFD):
     def compute_proportion(
         flow: int, capacity: int, free_flow_speed: int, alpha: int
     ) -> int:
-        return 1 + alpha * (flow / capacity)
+        return 1 - alpha * (flow / capacity)

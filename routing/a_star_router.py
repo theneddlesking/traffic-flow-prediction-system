@@ -30,6 +30,6 @@ class AStarRouter(Router):
             network.points_dict[node.location_id] for node in path
         ]
 
-        time_taken = sum([node.g for node in path])
+        time_taken = path[-1].g
 
         return path_points, time_taken
