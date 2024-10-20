@@ -106,6 +106,9 @@ class AStarRouter(Router):
                 start, end, time_graph, network
             )
 
+            # TODO check route instead of exact match, check if they are substantially different
+            # check this by comparing the SCAT site numbers, eg. don't just run around the intersection
+
             # already found the same route or no more routes to find
             if next_best_route is None or next_best_route in best_routes:
                 break
