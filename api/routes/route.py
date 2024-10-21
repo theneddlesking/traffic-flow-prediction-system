@@ -8,14 +8,19 @@ from routing.mfd_time_estimator import MFDTimeEstimator
 from routing.point import RoutingPoint
 from routing.road_network import RoadNetwork
 
-from db.instance import site_controller
+from models import model_manager
+
+
+from cache import default_cache
 
 router = APIRouter()
 
 
 # find optimal route between point a and point b
 @router.get("/route")
-async def get_route(start_location_id: int, end_location_id: int, time_of_day: str):
+async def get_route(
+    start_location_id: int, end_location_id: int, time_of_day: str, model_name: str
+):
     """Get route"""
     # TODO add some caching logic
 
@@ -23,7 +28,7 @@ async def get_route(start_location_id: int, end_location_id: int, time_of_day: s
     # TODO maybe we could add a way to tune these parameters
     astar_router = AStarRouter(MFDTimeEstimator(BasicMFD(alpha=1, beta=0.3)))
 
-    locations = site_controller.get_locations()
+    locations = default_cache.site_controller.get_locations()
 
     routing_points = [RoutingPoint.from_location(location) for location in locations]
 
@@ -32,7 +37,13 @@ async def get_route(start_location_id: int, end_location_id: int, time_of_day: s
     start = network.points_dict[start_location_id]
     goal = network.points_dict[end_location_id]
 
-    routes = await astar_router.find_best_routes(start, goal, time_of_day, network)
+    # TODO add param for model name
+
+    model = model_manager.get_model(model_name)
+
+    routes = await astar_router.find_best_routes(
+        start, goal, time_of_day, network, model
+    )
 
     if len(routes) == 0:
         return {

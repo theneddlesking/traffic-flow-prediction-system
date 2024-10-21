@@ -1,17 +1,20 @@
 from db.sqlite_db import DBModel, SQLiteDB
-from db.spoofed_model import SpoofedModel
+from model.nn_model import Model
+from model.real_time_source import RealTimeSource
 
 
 class FlowPredictorModel(DBModel):
     """A model for the database to interact with the traffic flow table."""
 
-    def __init__(self, db: SQLiteDB, model: SpoofedModel):
+    def __init__(self, db: SQLiteDB, model: Model, real_time_data: RealTimeSource):
         super().__init__(db)
 
-        self.model = model
+        self.real_time_data = real_time_data
         # ! Assumes that model_name is passed in safely, NOT USER FACING
         # TODO is there a better way to handle this?
         self.table_name = f"{model.name}_predictions"
+
+        self.model = model
 
     def get_flow(self, location_id: int, time: str) -> int | None:
         """Get the flow at a location and time."""
@@ -49,6 +52,6 @@ class FlowPredictorModel(DBModel):
 
     def init_model(self):
         """Initialise the model with default predictions."""
-        df = self.model.get_predictions_df()
+        df = self.real_time_data.get_predictions_df()
 
         self.db.create_table_from_df(df, self.table_name)

@@ -1,9 +1,9 @@
-from db.instance import db
+from cache import default_cache
 
 # copy predictions into basic_predictions
 
-db.copy_table("predictions", "basic_predictions")
+default_cache.db.copy_table("basic_predictions", "basic_model_predictions")
 
 # drop predictions
 
-db.drop_table("predictions")
+default_cache.db.drop_table("basic_predictions")
