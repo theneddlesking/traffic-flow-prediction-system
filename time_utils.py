@@ -18,3 +18,14 @@ class TimeUtils:
         minutes_str = str(minutes).zfill(2)
 
         return f"{hours_str}:{minutes_str}"
+
+    @staticmethod
+    def convert_str_to_minute_index(time_str: str, period_in_minutes=15):
+        """Convert a string representation of the time to a minute index."""
+        hours, minutes = map(int, time_str.split(":"))
+
+        minutes_in_hour = 60
+
+        period_per_hour = minutes_in_hour // period_in_minutes
+
+        return hours * period_per_hour + minutes // period_in_minutes

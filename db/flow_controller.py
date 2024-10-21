@@ -29,4 +29,4 @@ class FlowController(Controller):
 
     def compute_flow(self, location_id: int, time: str):
         """Compute flow, caching all flows for the location."""
-        return self.model.model.compute_flow(location_id, time)
+        return self.model.real_time_data.compute_flow(location_id, time)

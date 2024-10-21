@@ -22,6 +22,13 @@ class DataLoader:
         self.target = target
         self.pre_processing_steps = pre_processing_steps
 
+        self.pre_processed_df = self.preprocess_df()
+
+        if not self.df_contains_target():
+            raise ValueError(
+                "Target column not found in data frame. Make sure the target column is in the data frame after preprocessing."
+            )
+
     def get_df(self) -> pd.DataFrame:
         """Loads data frame from CSV file."""
         return pd.read_csv(self.csv_path, encoding="utf-8")
@@ -30,16 +37,18 @@ class DataLoader:
         """Saves data frame to CSV file."""
         df.to_csv(new_path, encoding="utf-8", index=False)
 
-    def preprocess_df(self, df: pd.DataFrame) -> pd.DataFrame:
+    def preprocess_df(self) -> pd.DataFrame:
         """Preprocesses the data frame."""
+        df = self.get_df()
+
         for step in self.pre_processing_steps:
             df = step(df)
 
         return df
 
-    def df_contains_target(self, df: pd.DataFrame) -> bool:
+    def df_contains_target(self) -> bool:
         """Checks if the target column is in the data frame."""
-        return self.target in df.columns
+        return self.target in self.pre_processed_df.columns
 
     # TODO should these static methods be in a separate class?
 
@@ -77,9 +86,8 @@ class DataLoader:
         """Collapses the dimensions of the input data to 2D. (For SAES models?)"""
         return x_train.reshape(x_train.shape[0], x_train.shape[1])
 
-    @staticmethod
     def create_train_test_split_from_df(
-        df: pd.DataFrame, train_test_proportion: float, target: str, lags: int
+        self, train_test_proportion: float, lags: int
     ) -> ModelInputData:
         """
         Convert DataFrame to numpy
@@ -97,6 +105,9 @@ class DataLoader:
             y_test_original: ndarray.
             scaler: StandardScaler.
         """
+
+        df = self.pre_processed_df
+        target = self.target
 
         # split df based on test train proportion but evenly per day
 
@@ -194,7 +205,3 @@ class DataLoader:
     def peek(df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
         """Peek at the first n rows of a data frame."""
         return df.head(n)
-
-    def peek_preprocessed(self, n: int = 5) -> pd.DataFrame:
-        """Peek at the first n rows of a preprocessed data frame."""
-        return self.peek(self.preprocess_df(self.get_df()), n)

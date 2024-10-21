@@ -17,7 +17,6 @@ basic_model = Model(ModelBuilder.get_gru(gru_units), "basic_model")
 
 CSV = "./data/vic/ScatsOctober2006.csv"
 
-
 data_loader = DataLoader(
     CSV,
     "flow",
@@ -45,9 +44,6 @@ data_loader = DataLoader(
     ],
 )
 
-# print df
-print(data_loader.peek_preprocessed())
-
 training_config = TrainingConfig(
     epochs=10,
     batch_size=256,
@@ -57,8 +53,14 @@ training_config = TrainingConfig(
 )
 
 # train
+main_input_data = data_loader.create_train_test_split_from_df(
+    training_config.train_test_proportion,
+    training_config.lags,
+)
+
+# train
 basic_model, hist_df, main_input_data = ModelTrainer.train(
-    data_loader, training_config, basic_model
+    main_input_data, training_config, basic_model
 )
 
 y_true = main_input_data.y_test_original
