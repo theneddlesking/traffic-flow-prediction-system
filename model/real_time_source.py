@@ -10,12 +10,9 @@ class RealTimeSource:
         self,
         day_of_flow_data: list[int],
         lag_flow_data_from_day_before: list[int],
-        model: Model,
     ):
         self.lag_flow_data_from_day_before = lag_flow_data_from_day_before
         self.day_of_flow_data = day_of_flow_data
-
-        self.model = model
 
         self.lags = len(lag_flow_data_from_day_before)
 
@@ -30,10 +27,11 @@ class RealTimeSource:
 
         return all_data[offset_index - self.lags : offset_index]
 
-    async def compute_flow(self, location_id: int, time: str) -> int:
+    async def compute_flow(self, location_id: int, time: str, model: Model) -> int:
         """Compute flow"""
 
         # TODO also use location_id for general model
+        # TODO also include a set of heuristics for computing flow
 
         # get subset of data
 
@@ -44,7 +42,7 @@ class RealTimeSource:
         data = self.get_lag_input_data_for_time(time_index)
 
         # predict flow
-        flow = self.model.predict(data)
+        flow = model.predict(data)
 
         return flow
 

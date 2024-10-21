@@ -1,20 +1,10 @@
-# init db
-from db.flow_controller import FlowController
-from db.flow_model import FlowPredictorModel
-from db.site_controller import SiteController
-from db.site_model import SiteModel
-from db.sqlite_db import SQLiteDB
+# TEMP
+
+# TODO fix this, TEMPORARY !
 from model.real_time_source import RealTimeSource
 
 
-db = SQLiteDB("./db/site.db")
-
-site_model = SiteModel(db)
-
-site_controller = SiteController(site_model)
-
-# TODO fix this, TEMPORARY !
-actual_data = [
+data_for_a_day = [
     32,
     30,
     20,
@@ -113,7 +103,6 @@ actual_data = [
     34,
 ]
 
+data_for_the_day_before = [113, 93, 90, 123, 100, 100, 72, 64, 66, 66, 57, 32]
 
-flow_model = FlowPredictorModel(db, RealTimeSource())
-
-basic_flow_controller = FlowController(flow_model)
+real_time_source = RealTimeSource(data_for_a_day, data_for_the_day_before)

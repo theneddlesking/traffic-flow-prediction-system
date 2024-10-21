@@ -1,3 +1,4 @@
+from model.nn_model import Model
 from routing.road_network import RoadNetwork
 from routing.time_estimator import TimeEstimator
 
@@ -14,11 +15,11 @@ class TimeGraph:
 
         self.point_graph = None
 
-    async def initialise(self) -> "TimeGraph":
+    async def initialise(self, model: Model) -> "TimeGraph":
         """Async initialisation of the TimeGraph"""
 
         self.point_graph = await self.create_point_graph(
-            self.time_of_day, self.road_network
+            self.time_of_day, self.road_network, model
         )
 
         return self
@@ -27,6 +28,7 @@ class TimeGraph:
         self,
         time_of_day: int,
         road_network: RoadNetwork,
+        model: Model,
     ) -> dict[int, dict[int, int]]:
         """Create a graph of the road network with time taken to travel between points."""
 
@@ -45,7 +47,7 @@ class TimeGraph:
             for neighbour in neighbours:
                 hours_taken = (
                     await self.time_estimator.estimate_hours_taken_between_points(
-                        point, neighbour, time_of_day
+                        point, neighbour, time_of_day, model
                     )
                 )
 

@@ -1,3 +1,4 @@
+from model.nn_model import Model
 from routing.point import RoutingPoint
 from routing.road_network import RoadNetwork
 from routing.route import Route
@@ -12,6 +13,7 @@ class Router:
         end: RoutingPoint,
         time_of_day: str,
         network: RoadNetwork,
+        model: Model,
     ) -> Route:
         """Find the shortest route between two RoutingPoints and time taken in hours."""
         raise NotImplementedError("find_route method must be implemented by subclass.")
@@ -22,6 +24,7 @@ class Router:
         end: RoutingPoint,
         time_of_day: str,
         network: RoadNetwork,
+        model: Model,
     ) -> list[Route]:
         """Find the best routes between two points."""
         raise NotImplementedError(

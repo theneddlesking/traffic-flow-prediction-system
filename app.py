@@ -41,6 +41,7 @@ APP_DIR = "/app"
 # fix dist
 fix_dist(APP_DIR)
 
+
 # serve static files from the build directory
 app.mount(APP_DIR, StaticFiles(directory="./frontend/dist", html=True), name="static")
 

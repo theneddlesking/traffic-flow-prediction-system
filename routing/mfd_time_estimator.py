@@ -1,8 +1,9 @@
+from model.nn_model import Model
 from routing.mfd import MFD
 from routing.point import RoutingPoint
 from routing.time_estimator import TimeEstimator
 
-from db.instance import basic_flow_controller
+from cache import default_cache
 
 
 class MFDTimeEstimator(TimeEstimator):
@@ -12,7 +13,7 @@ class MFDTimeEstimator(TimeEstimator):
         self.mfd = mfd
 
     async def estimate_hours_taken_between_points(
-        self, start: RoutingPoint, end: RoutingPoint, time_of_day: str
+        self, start: RoutingPoint, end: RoutingPoint, time_of_day: str, model: Model
     ) -> int:
         """Estimate the time taken to travel between two locations."""
 
@@ -27,28 +28,36 @@ class MFDTimeEstimator(TimeEstimator):
             # assume that the time taken is 30 seconds for each intersection
             return hours_taken_at_intersection
 
-        start_flow = basic_flow_controller.get_flow(start.location_id, time_of_day)
+        start_flow = default_cache.flow_controller.get_flow(
+            start.location_id, time_of_day, model
+        )
 
         if start_flow is None:
             # compute flow
-            start_flow = await basic_flow_controller.compute_flow(
-                start.location_id, time_of_day
+            start_flow = default_cache.flow_controller.compute_flow(
+                start.location_id, time_of_day, model
             )
 
-        end_flow = basic_flow_controller.get_flow(end.location_id, time_of_day)
+        end_flow = default_cache.flow_controller.get_flow(
+            end.location_id, time_of_day, model
+        )
 
         if end_flow is None:
             # compute flow
-            end_flow = await basic_flow_controller.compute_flow(
-                end.location_id, time_of_day
+            end_flow = await default_cache.flow_controller.compute_flow(
+                end.location_id, time_of_day, model
             )
 
         # there are a few ways to compute the flow between two points
         # for now we can just use a simple average
         flow = (start_flow + end_flow) / 2
 
-        start_capacity = basic_flow_controller.get_max_flow(start.location_id)
-        end_capacity = basic_flow_controller.get_max_flow(end.location_id)
+        start_capacity = default_cache.flow_controller.get_max_flow(
+            start.location_id, model
+        )
+        end_capacity = default_cache.flow_controller.get_max_flow(
+            end.location_id, model
+        )
 
         # there are a few ways to compute the capacity between two points
         # for now we can just use a simple average
