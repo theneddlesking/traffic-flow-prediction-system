@@ -63,9 +63,7 @@ class MFDTimeEstimator(TimeEstimator):
         # for now we can just use a simple average
         capacity = (start_capacity + end_capacity) / 2
 
-        prop = self.mfd.compute_proportion(
-            flow=flow, capacity=capacity, free_flow_speed=free_flow_speed
-        )
+        prop = self.mfd.compute_proportion(flow, capacity, free_flow_speed)
 
         speed = prop * free_flow_speed
 

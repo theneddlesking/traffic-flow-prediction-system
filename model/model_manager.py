@@ -18,3 +18,7 @@ class ModelManager:
                 return model
 
         return None
+
+    def get_models(self) -> list[Model]:
+        """Get all models in string form"""
+        return self.models

@@ -48,7 +48,7 @@ function Map() {
 
     // fetch route from backend
     setLoading(true);
-    const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}`)
+    const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}&model_name=${model}`);
     setLoading(false);
 
     // handle error
@@ -80,6 +80,7 @@ function Map() {
         console.log(models.data.models);
 
         setAllModels(models.data.models);
+        setModel(models.data.models[0]);
       })
       .catch(error => {
         console.error('There was an error fetching the data!', error);
