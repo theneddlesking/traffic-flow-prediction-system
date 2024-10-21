@@ -10,7 +10,6 @@ from routing.road_network import RoadNetwork
 
 from models import model_manager
 
-
 from cache import default_cache
 
 router = APIRouter()
@@ -24,8 +23,6 @@ async def get_route(
     """Get route"""
     # TODO add some caching logic
 
-    # NOTE: alpha and beta are parameters that can be tuned to fit the MFD to the data
-    # TODO maybe we could add a way to tune these parameters
     astar_router = AStarRouter(MFDTimeEstimator(BasicMFD(alpha=1, beta=0.3)))
 
     locations = default_cache.site_controller.get_locations()
@@ -37,9 +34,10 @@ async def get_route(
     start = network.points_dict[start_location_id]
     goal = network.points_dict[end_location_id]
 
-    # TODO add param for model name
-
     model = model_manager.get_model(model_name)
+
+    if model is None:
+        return {"error": "Model not found."}
 
     routes = await astar_router.find_best_routes(
         start, goal, time_of_day, network, model
@@ -50,6 +48,4 @@ async def get_route(
             "error": "No path found. Could be because the start or end location is invalid."
         }
 
-    routes_json = [route.as_json() for route in routes]
-
-    return {"routes": routes_json}
+    return {"routes": [route.as_json() for route in routes]}
