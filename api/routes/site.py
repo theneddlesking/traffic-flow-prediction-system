@@ -11,7 +11,7 @@ router = APIRouter()
 @router.get("/models")
 async def get_models():
     """Get all models"""
-    return {"models": ["Basic Model", "LSTM", "GRU", "SAES"]}
+    return {"models": ["basic_model"]}
 
 # get all locations
 @router.get("/locations")
