@@ -105,4 +105,6 @@ data_for_a_day = [
 
 data_for_the_day_before = [113, 93, 90, 123, 100, 100, 72, 64, 66, 66, 57, 32]
 
-real_time_source = RealTimeSource(data_for_a_day, data_for_the_day_before)
+LOCATION_ID = 1
+
+real_time_source = RealTimeSource(data_for_a_day, data_for_the_day_before, LOCATION_ID)

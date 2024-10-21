@@ -6,6 +6,7 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 
 from model.model_input_data import ModelInputData
+from model.real_time_source import RealTimeSource
 from time_utils import TimeUtils
 
 
@@ -121,6 +122,10 @@ class DataLoader:
             df[split:],
         )
 
+        vals = df[target].values.reshape(-1, 1)
+
+        print(f"vals shape: {vals.shape}")
+
         scaler = MinMaxScaler(feature_range=(0, 1)).fit(
             df[target].values.reshape(-1, 1)
         )
@@ -205,3 +210,23 @@ class DataLoader:
     def peek(df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
         """Peek at the first n rows of a data frame."""
         return df.head(n)
+
+    @staticmethod
+    def load_from_real_time_source(
+        real_time_data: RealTimeSource, time_index: int
+    ) -> tuple[np.ndarray, MinMaxScaler]:
+        """Load data from a real time source."""
+
+        example_flow_set = real_time_data.get_lag_input_data_for_time(time_index)
+
+        x_test = np.array(example_flow_set)
+
+        # reshape for LSTM
+        x_test = x_test.reshape(-1, 1)
+
+        # normalise
+        scaler = MinMaxScaler(feature_range=(0, 1)).fit(x_test.reshape(-1, 1))
+
+        x_test = scaler.transform(x_test)
+
+        return x_test, scaler

@@ -1,15 +1,20 @@
+import pandas as pd
+from data_loader import DataLoader
 from db.sqlite_db import DBModel, SQLiteDB
 from model.nn_model import Model
 from model.real_time_source import RealTimeSource
+from time_utils import TimeUtils
 
 
 class FlowPredictorModel(DBModel):
     """A model for the database to interact with the traffic flow table."""
 
-    def __init__(self, db: SQLiteDB, model: Model, real_time_data: RealTimeSource):
+    def __init__(
+        self, db: SQLiteDB, model: Model, real_time_sources: list[RealTimeSource]
+    ):
         super().__init__(db)
 
-        self.real_time_data = real_time_data
+        self.real_time_sources = real_time_sources
         # ! Assumes that model_name is passed in safely, NOT USER FACING
         # TODO is there a better way to handle this?
         self.table_name = f"{model.name}_predictions"
@@ -50,8 +55,55 @@ class FlowPredictorModel(DBModel):
             commit=True,
         )
 
+    def get_predictions_for_source(self, real_time_data: RealTimeSource):
+        """Get predictions for a real time source."""
+
+        preds = []
+
+        for i in range(0, len(real_time_data.day_of_flow_data)):
+
+            x_test, scaler = DataLoader.load_from_real_time_source(real_time_data, i)
+
+            x_test = x_test.reshape(x_test.shape[0], x_test.shape[1])
+
+            # get predictions
+            predictions = self.model.predict(x_test, scaler)
+
+            # take first
+
+            first = predictions[0]
+
+            # add to preds
+            preds.append(first)
+
+        return preds
+
     def init_model(self):
         """Initialise the model with default predictions."""
-        df = self.real_time_data.get_predictions_df()
 
+        locations_preds = {}
+
+        for real_time_source in self.real_time_sources:
+            preds = self.get_predictions_for_source(real_time_source)
+
+            location = real_time_source.location_id
+
+            locations_preds[location] = preds
+
+        # create df
+        df_rows = []
+
+        for location, preds in locations_preds.items():
+            for i, pred in enumerate(preds):
+                df_rows.append(
+                    {
+                        "location_id": location,
+                        "time": TimeUtils.convert_minute_index_to_str(i),
+                        "flow": pred,
+                    }
+                )
+
+        df = pd.DataFrame(df_rows)
+
+        # add to db
         self.db.create_table_from_df(df, self.table_name)

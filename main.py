@@ -58,12 +58,18 @@ main_input_data = data_loader.create_train_test_split_from_df(
     training_config.lags,
 )
 
+# x shape
+
+print(main_input_data.x_test.shape)
+
 # train
 basic_model, hist_df, main_input_data = ModelTrainer.train(
     main_input_data, training_config, basic_model
 )
 
 y_true = main_input_data.y_test_original
+
+print(main_input_data.x_test.shape)
 
 # predict
 y_preds = basic_model.predict(main_input_data.x_test, main_input_data.scaler)

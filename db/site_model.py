@@ -62,5 +62,9 @@ class SiteModel(DBModel):
         # remove duplicates
         df = df.drop_duplicates()
 
+        # remove row with name AUBURN_RD N of BURWOOD_RD, bad data
+
+        df = df[df["name"] != "AUBURN_RD N of BURWOOD_RD"]
+
         # add to db
         self.db.create_table_from_df(df, "locations")

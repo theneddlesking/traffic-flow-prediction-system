@@ -13,7 +13,7 @@ class DBCache:
     def __init__(
         self,
         db_path: str,
-        real_time_source: RealTimeSource,
+        real_time_sources: list[RealTimeSource],
         model_manager: ModelManager,
     ):
         self.db = SQLiteDB(db_path)
@@ -22,7 +22,7 @@ class DBCache:
 
         self.flow_controller = FlowController(
             [
-                FlowPredictorModel(self.db, model, real_time_source)
+                FlowPredictorModel(self.db, model, real_time_sources)
                 for model in model_manager.models
             ]
         )

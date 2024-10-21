@@ -1,4 +1,4 @@
-from db.instance import db
+from cache import default_cache
 
 # init
-db.init_db()
+default_cache.db.init_db()
