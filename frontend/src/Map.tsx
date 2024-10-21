@@ -197,7 +197,17 @@ function Map() {
 
   return (
     <div className='map-container'>
-      {error && <div className="error-banner">{error}</div>}
+    {error && (
+      <div className="error-banner">
+        <span>{error}</span>
+        <button
+          className="close-button"
+          onClick={() => setError(null)}
+        >
+          &times;
+        </button>
+      </div>
+    )}
 
       <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic}
         setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)}
