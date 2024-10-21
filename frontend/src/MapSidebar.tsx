@@ -21,13 +21,16 @@ type MapSidebarProps = {
   setEndPoint: (coordinates: Location | null) => void;
   timeOfDay: string;
   setTimeOfDay: (time: string) => void;
+  setModel: (model: string) => void;
+  allModels: string[];
   locations: Location[];
   hoursTaken: number;
   waypoints: RoutingPoint[];
+  loading: boolean;
 };
 
 
-function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, locations, hoursTaken, waypoints }: MapSidebarProps) {
+function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, setModel, allModels, locations, hoursTaken, waypoints, loading }: MapSidebarProps) {
   const [startPointInput, setStartPointInput] = useState('');
   const [endPointInput, setEndPointInput] = useState('');
 
@@ -132,6 +135,7 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
           <SidebarContent>
             <Menu>
               <div className='navigation-container'>
+                <label>Starting Point</label>
                 <input
                   placeholder='Starting Point'
                   type="text"
@@ -142,6 +146,7 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
                   onChange={(e) => validateStartInput(e.target.value)}
                   list="locations"
                 />
+                <label>Destination</label>
                 <input
                   placeholder='Destination'
                   type="text"
@@ -153,12 +158,19 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
                   onChange={(e) => validateEndInput(e.target.value)}
                   list="locations"
                 />
+                <label>Time Of Day</label>
                 <input
                   type="time"
                   id="timeOfDay"
                   value={timeOfDay}
                   onChange={(e) => setTimeOfDay(e.target.value)}
                 />
+                <label>Model</label>
+                <select>
+                  {allModels && allModels.map(model => (
+                    <option key={model} value={model} onChange={() => setModel(model)}>{model}</option>
+                  ))}
+                </select>
               </div>
               <datalist id="locations">
                 {locations.map(location => (
@@ -166,7 +178,12 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
                 ))}
               </datalist>
             </Menu>
-            {startPoint && endPoint && (
+            {loading && (
+              <div className="spinner-container">
+                <div className="spinner"></div>
+              </div>
+            )}
+            {startPoint && endPoint && !loading && (
               <Menu>
                 <p className="time">{getTimeStringFromHours(hoursTaken)}</p>
 

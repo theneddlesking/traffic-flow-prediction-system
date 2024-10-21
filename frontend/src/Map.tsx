@@ -32,19 +32,24 @@ function Map() {
   const [routes, setRoutes] = useState<Route[]>([]);
 
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const SHOW_INTERSECTIONS = false;
   const SHOW_CONNECTIONS = false;
 
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
+  const [model, setModel] = useState('');
+  const [allModels, setAllModels] = useState<string[]>([]);
 
   const [hoursTaken, setHoursTaken] = useState<number | null>(null);
 
   const generateRoute = async (routeStartPoint: Location, routeEndPoint: Location) => {
 
     // fetch route from backend
+    setLoading(true);
     const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}`)
+    setLoading(false);
 
     // handle error
     if (res.data.error) {
@@ -67,6 +72,20 @@ function Map() {
 
     console.log(`Route takes ${routeHours} hours`);
   }
+
+  useEffect(() => {
+    axios.get<{ models: string[] }>('http://127.0.0.1:8000/site/models')
+      .then(models => {
+        console.log("models");
+        console.log(models.data.models);
+
+        setAllModels(models.data.models);
+      })
+      .catch(error => {
+        console.error('There was an error fetching the data!', error);
+        setError(`There was an error fetching location data - ${error}`);
+      });
+  }, []);
 
   useEffect(() => {
     axios.get<{ locations: Location[] }>('http://127.0.0.1:8000/site/locations')
@@ -181,9 +200,22 @@ function Map() {
 
   return (
     <div className='map-container'>
-      {error && <div className="error-banner">{error}</div>}
+    {error && (
+      <div className="error-banner">
+        <span>{error}</span>
+        <button
+          className="close-button"
+          onClick={() => setError(null)}
+        >
+          &times;
+        </button>
+      </div>
+    )}
 
-      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)} locations={locations} hoursTaken={hoursTaken || 0} waypoints={waypoints} />
+      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic}
+        setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)}
+        setModel={(model) => setModel(model)} allModels={allModels} locations={locations}
+        hoursTaken={hoursTaken || 0} waypoints={waypoints} loading={loading} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
         <TileLayer

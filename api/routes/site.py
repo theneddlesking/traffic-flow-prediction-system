@@ -1,10 +1,16 @@
 # site route
 
 from fastapi import APIRouter
+from db.instance import site_controller
 from cache import default_cache
 
 router = APIRouter()
 
+# get all models in string form
+@router.get("/models")
+async def get_models():
+    """Get all models"""
+    return {"models": ["basic_model"]}
 
 # get all locations
 @router.get("/locations")
