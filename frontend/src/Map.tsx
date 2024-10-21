@@ -38,6 +38,8 @@ function Map() {
 
 
   const [timeOfDay, setTimeOfDay] = useState('12:00');
+  const [model, setModel] = useState('');
+  const [allModels, setAllModels] = useState<string[]>([]);
 
   const [hoursTaken, setHoursTaken] = useState<number | null>(null);
 
@@ -67,6 +69,20 @@ function Map() {
 
     console.log(`Route takes ${routeHours} hours`);
   }
+
+  useEffect(() => {
+    axios.get<{ models: string[] }>('http://127.0.0.1:8000/site/models')
+      .then(models => {
+        console.log("models");
+        console.log(models.data.models);
+
+        setAllModels(models.data.models);
+      })
+      .catch(error => {
+        console.error('There was an error fetching the data!', error);
+        setError(`There was an error fetching location data - ${error}`);
+      });
+  }, []);
 
   useEffect(() => {
     axios.get<{ locations: Location[] }>('http://127.0.0.1:8000/site/locations')
@@ -183,7 +199,10 @@ function Map() {
     <div className='map-container'>
       {error && <div className="error-banner">{error}</div>}
 
-      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)} locations={locations} hoursTaken={hoursTaken || 0} waypoints={waypoints} />
+      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic}
+        setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)}
+        setModel={(model) => setModel(model)} allModels={allModels} locations={locations}
+        hoursTaken={hoursTaken || 0} waypoints={waypoints} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
         <TileLayer

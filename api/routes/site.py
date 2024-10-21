@@ -2,29 +2,16 @@
 
 from fastapi import APIRouter
 
-from db.instance import site_controller, basic_flow_controller
+from db.instance import site_controller
 
 router = APIRouter()
 
 
-# from location and time of day return the flow
-@router.get("/flow")
-async def get_flow(location_id: int, time: str):
-    """Get flow"""
-
-    flow = basic_flow_controller.get_flow(location_id, time)
-
-    if flow is None:
-        # compute flow
-        flow = await basic_flow_controller.compute_flow(location_id, time)
-
-    if flow is not None:
-        return {"flow": flow}
-
-    return {
-        "error": "Flow not found. Could be because the location or time is invalid."
-    }
-
+# get all models in string form
+@router.get("/models")
+async def get_models():
+    """Get all models"""
+    return {"models": ["Basic Model", "LSTM", "GRU", "SAES"]}
 
 # get all locations
 @router.get("/locations")
