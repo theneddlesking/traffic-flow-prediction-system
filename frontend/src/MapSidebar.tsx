@@ -26,10 +26,11 @@ type MapSidebarProps = {
   locations: Location[];
   hoursTaken: number;
   waypoints: RoutingPoint[];
+  loading: boolean;
 };
 
 
-function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, setModel, allModels, locations, hoursTaken, waypoints }: MapSidebarProps) {
+function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, setModel, allModels, locations, hoursTaken, waypoints, loading }: MapSidebarProps) {
   const [startPointInput, setStartPointInput] = useState('');
   const [endPointInput, setEndPointInput] = useState('');
 
@@ -177,7 +178,12 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
                 ))}
               </datalist>
             </Menu>
-            {startPoint && endPoint && (
+            {loading && (
+              <div className="spinner-container">
+                <div className="spinner"></div>
+              </div>
+            )}
+            {startPoint && endPoint && !loading && (
               <Menu>
                 <p className="time">{getTimeStringFromHours(hoursTaken)}</p>
 

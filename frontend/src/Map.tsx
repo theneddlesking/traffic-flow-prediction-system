@@ -32,6 +32,7 @@ function Map() {
   const [routes, setRoutes] = useState<Route[]>([]);
 
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const SHOW_INTERSECTIONS = false;
   const SHOW_CONNECTIONS = false;
@@ -46,7 +47,9 @@ function Map() {
   const generateRoute = async (routeStartPoint: Location, routeEndPoint: Location) => {
 
     // fetch route from backend
+    setLoading(true);
     const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}`)
+    setLoading(false);
 
     // handle error
     if (res.data.error) {
@@ -212,7 +215,7 @@ function Map() {
       <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic}
         setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)}
         setModel={(model) => setModel(model)} allModels={allModels} locations={locations}
-        hoursTaken={hoursTaken || 0} waypoints={waypoints} />
+        hoursTaken={hoursTaken || 0} waypoints={waypoints} loading={loading} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
         <TileLayer
