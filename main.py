@@ -1,213 +1,89 @@
-"""
-Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU).
-"""
+from data_loader import DataLoader
+from data_visualiser import DataVisualiser
+from model.model_result import ModelResult
+from processing_step import ProcessingSteps
 
-import math
-import warnings
-import numpy as np
-import pandas as pd
-from data.data import process_data
-import keras
+from model.model_trainer import ModelTrainer
+from model.nn_model import Model
+from model.model_builder import ModelBuilder
+from model.training_config import TrainingConfig
 
-# as of keras 3.0, the practice has changed to directly accessing models, layers, etc. in code e.g. keras.models.load_model
-import sklearn.metrics as metrics
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 
-import argparse
+lstm_units = [12, 64, 64, 1]
+gru_units = [12, 64, 64, 1]
+saes_units = [12, 400, 400, 400, 1]
 
-warnings.filterwarnings("ignore")
+basic_model = Model(ModelBuilder.get_gru(gru_units), "basic_model")
 
-HOURS_IN_DAY = 24
+CSV = "./data/vic/ScatsOctober2006.csv"
 
-MINUTES_IN_HOUR = 60
-
-NUMBER_OF_5_MINUTE_INTERVALS_IN_HOUR = MINUTES_IN_HOUR // 5
-
-# 288 5-minute increments in a day
-NUMBER_OF_5_MINUTE_INTERVALS_IN_DAY = (
-    HOURS_IN_DAY * NUMBER_OF_5_MINUTE_INTERVALS_IN_HOUR
+data_loader = DataLoader(
+    CSV,
+    "flow",
+    [
+        # filter only some locations
+        ProcessingSteps.filter_rows(
+            lambda df: df["LOCATION"].isin(
+                ["WARRIGAL_RD N of HIGH STREET_RD", "HIGH STREET_RD E of WARRIGAL_RD"]
+            )
+        ),
+        # categorise location
+        ProcessingSteps.categorise_column("LOCATION"),
+        # rename columns
+        ProcessingSteps.rename_columns(
+            {
+                "LOCATION": "location",
+            }
+        ),
+        # drop duplicates
+        ProcessingSteps.drop_duplicates(),
+        # get flow per period
+        ProcessingSteps.get_flow_per_period(),
+        # drop columns
+        ProcessingSteps.filter_columns(["time", "flow", "location"]),
+    ],
 )
 
+training_config = TrainingConfig(
+    epochs=10,
+    batch_size=256,
+    lags=12,
+    train_test_proportion=0.7,
+    validation_split=0.05,
+)
 
-def MAPE(y_true, y_pred):
-    """Mean Absolute Percentage Error
-    Calculate the mape.
+# train
+main_input_data = data_loader.create_train_test_split_from_df(
+    training_config.train_test_proportion,
+    training_config.lags,
+)
 
-    # Arguments
-        y_true: List/ndarray, ture data.
-        y_pred: List/ndarray, predicted data.
-    # Returns
-        mape: Double, result data for train.
-    """
+# train
+basic_model, hist_df, main_input_data = ModelTrainer.train(
+    main_input_data, training_config, basic_model
+)
 
-    y = [x for x in y_true if x > 0]
-    y_pred = [y_pred[i] for i in range(len(y_true)) if y_true[i] > 0]
+y_true = main_input_data.y_test_original
 
-    num = len(y_pred)
-    sums = 0
+# predict
+y_preds = basic_model.predict(main_input_data.x_test, main_input_data.scaler)
 
-    for i in range(num):
-        tmp = abs(y[i] - y_pred[i]) / y[i]
-        sums += tmp
+# limit to one day
+y_true, y_preds = DataLoader.get_example_day(y_true, y_preds, training_config.lags)
 
-    mape = sums * (100 / num)
+# create flow time df
+preds_df = DataLoader.create_flow_time_df(y_preds)
 
-    return mape
+# result
+results = [
+    ModelResult(basic_model, y_preds),
+]
 
+# plot
+DataVisualiser.plot_results(results, y_true)
 
-def eva_regress(y_true, y_pred):
-    """Evaluation
-    evaluate the predicted resul.
+# save plot
+DataVisualiser.save_plot("./results/visualisations/basic_model.png")
 
-    # Arguments
-        y_true: List/ndarray, ture data.
-        y_pred: List/ndarray, predicted data.
-    """
-
-    mape = MAPE(y_true, y_pred)
-    vs = metrics.explained_variance_score(y_true, y_pred)
-    mae = metrics.mean_absolute_error(y_true, y_pred)
-    mse = metrics.mean_squared_error(y_true, y_pred)
-    r2 = metrics.r2_score(y_true, y_pred)
-    print("explained_variance_score:%f" % vs)
-    print("mape:%f%%" % mape)
-    print("mae:%f" % mae)
-    print("mse:%f" % mse)
-    print("rmse:%f" % math.sqrt(mse))
-    print("r2:%f" % r2)
-
-
-def plot_results(y_true, y_preds, names, location):
-    """Plot
-    Plot the true data and predicted data.
-
-    # Arguments
-        y_true: List/ndarray, ture data.
-        y_pred: List/ndarray, predicted data.
-        names: List, Method names.
-    """
-    d = "2016-3-4 00:00"
-    x = pd.date_range(d, periods=288, freq="5min")
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-
-    ax.plot(x, y_true, label="True Data")
-    for name, y_pred in zip(names, y_preds):
-        ax.plot(x, y_pred, label=name)
-
-    plt.legend()
-    plt.grid(True)
-    plt.xlabel("Time of Day")
-    plt.ylabel("Flow")
-
-    date_format = mpl.dates.DateFormatter("%H:%M")
-    ax.xaxis.set_major_formatter(date_format)
-    fig.autofmt_xdate()
-
-    # save plot
-    plt.savefig("images/vic/" + location + ".png")
-
-
-def run_model(location, model_names, save_image=True):
-
-    if model_names is None:
-        model_names = ["lstms", "grus", "saes"]
-
-    lag = 12
-    file1 = "data/vic_test_train/train_" + location + ".csv"
-    file2 = "data/vic_test_train/test_" + location + ".csv"
-
-    _, _, X_test, y_test, scaler = process_data(file1, file2, lag)
-    y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).reshape(1, -1)[0]
-
-    models = []
-
-    # see import statements for more info
-    for name in model_names:
-        models.append(
-            keras.models.load_model(
-                "model/vic/" + location + "_" + name.lower() + ".keras"
-            )
-        )
-
-    y_preds = []
-    for name, model in zip(model_names, models):
-        if name == "saes":
-            X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1]))
-        else:
-            X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
-        # "this is a bug of Keras" - https://github.com/XifengGuo/CapsNet-Keras/issues/7
-        # file = 'images/' + name + '.png'
-        # keras.utils.plot_model(model, to_file=file, show_shapes=True)
-        predicted = model.predict(X_test)
-        predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
-        y_preds.append(predicted[:NUMBER_OF_5_MINUTE_INTERVALS_IN_DAY])
-        print(name)
-        eva_regress(y_test, predicted)
-
-    # get predictions for each time interval
-
-    predictions = []
-
-    for i in range(NUMBER_OF_5_MINUTE_INTERVALS_IN_DAY):
-        prediction = []
-        for y_pred in y_preds:
-            prediction.append(y_pred[i])
-        predictions.append(prediction)
-
-    if save_image:
-        plot_results(
-            y_test[:NUMBER_OF_5_MINUTE_INTERVALS_IN_DAY], y_preds, model_names, location
-        )
-
-    return predictions
-
-
-def main():
-    parser = argparse.ArgumentParser()
-
-    # add arg for location
-    parser.add_argument(
-        "--location",
-        help="Location to extract data from.",
-    )
-
-    # add arg for models
-
-    parser.add_argument(
-        "--models",
-        nargs="+",
-        help="Models to train.",
-    )
-
-    args = parser.parse_args()
-
-    location = args.location
-
-    models = args.models
-
-    # verify location
-
-    if location is None:
-        raise ValueError("Location is required")
-
-    # verify models
-
-    if models is None:
-        raise ValueError("Models are required")
-
-    models = [model.lower() for model in models]
-
-    valid_models = ["lstm", "gru", "saes"]
-
-    for model in models:
-        if model not in valid_models:
-            raise ValueError(f"Invalid model {model}. Valid models are {valid_models}")
-
-    run_model(location, models)
-
-
-if __name__ == "__main__":
-    main()
+# save model
+basic_model.save("./saved_models")

@@ -140,3 +140,6 @@ db/site.db
 
 # db backups
 db/backups/
+
+# ignore keras
+*.keras
