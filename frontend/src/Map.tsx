@@ -215,7 +215,7 @@ function Map() {
 
       <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic}
         setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)}
-        setModel={(model) => setModel(model)} allModels={allModels} locations={locations}
+        setModel={(model) => setModel(model)} allModels={allModels} locations={locations} model={model}
         hoursTaken={hoursTaken || 0} waypoints={waypoints} loading={loading} />
 
       <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>

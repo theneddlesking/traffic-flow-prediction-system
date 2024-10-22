@@ -27,10 +27,11 @@ type MapSidebarProps = {
   hoursTaken: number;
   waypoints: RoutingPoint[];
   loading: boolean;
+  model: string;
 };
 
 
-function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, setModel, allModels, locations, hoursTaken, waypoints, loading }: MapSidebarProps) {
+function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, setModel, model, allModels, locations, hoursTaken, waypoints, loading }: MapSidebarProps) {
   const [startPointInput, setStartPointInput] = useState('');
   const [endPointInput, setEndPointInput] = useState('');
 
@@ -166,9 +167,9 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
                   onChange={(e) => setTimeOfDay(e.target.value)}
                 />
                 <label>Model</label>
-                <select>
-                  {allModels && allModels.map(model => (
-                    <option key={model} value={model} onChange={() => setModel(model)}>{model}</option>
+                <select value={model} onChange={(e) => setModel(e.target.value)}>
+                  {allModels.map(model => (
+                      <option key={model} value={model}>{model}</option>
                   ))}
                 </select>
               </div>
