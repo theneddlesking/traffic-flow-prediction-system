@@ -21,6 +21,4 @@ class RealTimeSource:
 
         all_data = self.lag_flow_data_from_day_before + self.day_of_flow_data
 
-        offset_index = time_index + self.lags
-
-        return all_data[offset_index : offset_index + self.lags]
+        return all_data[time_index : time_index + self.lags]
