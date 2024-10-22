@@ -69,6 +69,11 @@ class SiteModel(DBModel):
                 ProcessingSteps.filter_rows(
                     lambda df: df["name"] != "AUBURN_RD N of BURWOOD_RD"
                 ),
+                ProcessingSteps.filter_rows(
+                    lambda df: df["name"] != "HIGH_ST NE of CHARLES_ST"
+                ),
+                # sort by location name
+                ProcessingSteps.sort_by_column("name"),
                 # drop duplicates
                 ProcessingSteps.drop_duplicates(),
             ],

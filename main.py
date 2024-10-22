@@ -23,11 +23,11 @@ data_loader = DataLoader(
     "flow",
     [
         # filter only some locations
-        ProcessingSteps.filter_rows(
-            lambda df: df["LOCATION"].isin(
-                ["WARRIGAL_RD N of HIGH STREET_RD", "HIGH STREET_RD E of WARRIGAL_RD"]
-            )
-        ),
+        # ProcessingSteps.filter_rows(
+        #     lambda df: df["LOCATION"].isin(
+        #         ["WARRIGAL_RD N of HIGH STREET_RD", "HIGH STREET_RD E of WARRIGAL_RD"]
+        #     )
+        # ),
         # TODO filter out dates before test date
         # filter out most common date and day before
         # filter to most common date or the day before
@@ -48,6 +48,9 @@ data_loader = DataLoader(
         ProcessingSteps.filter_rows(
             lambda df: df["location"] != "AUBURN_RD N of BURWOOD_RD"
         ),
+        ProcessingSteps.filter_rows(
+            lambda df: df["location"] != "HIGH_ST NE of CHARLES_ST"
+        ),
         # drop duplicates
         ProcessingSteps.drop_duplicates(),
         # get flow per period
@@ -58,7 +61,7 @@ data_loader = DataLoader(
 )
 
 training_config = TrainingConfig(
-    epochs=200,
+    epochs=50,
     batch_size=256,
     lags=12,
     train_test_proportion=0.7,

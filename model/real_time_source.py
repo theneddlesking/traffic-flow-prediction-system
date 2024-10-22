@@ -21,6 +21,13 @@ class RealTimeSource:
     def get_lag_input_data_for_time(self, time_index: int) -> list[int]:
         """Get subset of data at the correct time index"""
 
-        all_data = self.lag_flow_data_from_day_before + self.day_of_flow_data
+        print(self.location_name)
+        print(self.lag_flow_data_from_day_before)
+        print(self.day_of_flow_data)
+        print(self.lags)
+
+        all_data = list(self.lag_flow_data_from_day_before) + list(
+            self.day_of_flow_data
+        )
 
         return all_data[time_index : time_index + self.lags]

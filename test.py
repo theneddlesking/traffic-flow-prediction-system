@@ -47,6 +47,9 @@ data_loader = DataLoader(
         ProcessingSteps.filter_rows(
             lambda df: df["location"] != "AUBURN_RD N of BURWOOD_RD"
         ),
+        ProcessingSteps.filter_rows(
+            lambda df: df["location"] != "HIGH_ST NE of CHARLES_ST"
+        ),
         # drop duplicates
         ProcessingSteps.drop_duplicates(),
         # remove unneeded columns
@@ -72,5 +75,3 @@ data_loader = DataLoader(
 )
 
 sources = data_loader.get_real_time_sources(data_loader.pre_processed_df, 12, 15)
-
-print(sources[0].location_name)
