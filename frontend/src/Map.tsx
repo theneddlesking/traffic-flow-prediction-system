@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
 import './App.css';
 import MapSidebar from './MapSidebar';
@@ -38,25 +38,29 @@ function Map() {
     showRoutes : true
   }
 
-  const generateRoute = async (routeStartPoint: Location, routeEndPoint: Location) => {
+  const generateRoute = useCallback(async (routeStartPoint: Location, routeEndPoint: Location) => {
     setLoading(true);
     try {
-      const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}&model_name=${model}`);
-      if (res.data.error) throw new Error(res.data.error);
+      const res = await axios.get<RoutingResponse>(
+        `http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}&model_name=${model}`
+      );
+      setLoading(false);
+
+      if (res.data.error) {
+        setError(`Error fetching route: ${res.data.error}`);
+        return;
+      }
+
       const bestRoute = res.data.routes[0];
       setWaypoints(bestRoute.waypoints);
       setHoursTaken(bestRoute.hours_taken);
       setRoutes(res.data.routes);
-    } catch (error) {
-      const typedError = error as Error
 
-      console.error(typedError);
-
-      setError(`Error fetching route: ${typedError.message}`);
-    } finally {
+    } catch (err) {
       setLoading(false);
+      setError(`Error fetching route: ${err}`);
     }
-  };
+  }, [timeOfDay, model]);
 
   useEffect(() => {
     if (allModels.length > 0) {
@@ -64,14 +68,18 @@ function Map() {
     }
   }, [allModels]);
 
+  useEffect(() => {
+    if (startPoint && endPoint) {
+      generateRoute(startPoint, endPoint);
+    }
+  }, [startPoint, endPoint, timeOfDay, model, generateRoute]);
+
   const setStartPointAndFetchTraffic = (location: Location | null) => {
     setStartPoint(location);
-    if (location && endPoint) generateRoute(location, endPoint);
   };
 
   const setEndPointAndFetchTraffic = (location: Location | null) => {
     setEndPoint(location);
-    if (location && startPoint) generateRoute(startPoint, location);
   };
 
   const dotIcon = new Icon({
