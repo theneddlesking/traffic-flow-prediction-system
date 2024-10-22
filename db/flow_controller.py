@@ -43,4 +43,8 @@ class FlowController(Controller):
     def compute_flow(self, location_id: int, time: str, model: Model):
         """Compute flow, caching all flows for the location."""
         db_model = self.get_matching_db_model(model)
-        return db_model.real_time_data.compute_flow(location_id, time)
+
+        # we haven't ran the model before, we need to run it for all times and locations
+        db_model.init_model()
+
+        return self.get_flow(location_id, time, model)

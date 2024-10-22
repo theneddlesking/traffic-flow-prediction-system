@@ -7,13 +7,14 @@ from model.model_trainer import ModelTrainer
 from model.nn_model import Model
 from model.model_builder import ModelBuilder
 from model.training_config import TrainingConfig
+from test import day_before, most_common_date
 
 
 lstm_units = [12, 64, 64, 1]
 gru_units = [12, 64, 64, 1]
 saes_units = [12, 400, 400, 400, 1]
 
-basic_model = Model(ModelBuilder.get_gru(gru_units), "basic_model")
+basic_model = Model(ModelBuilder.get_lstm(gru_units), "basic_lstm_model")
 
 CSV = "./data/vic/ScatsOctober2006.csv"
 
@@ -22,10 +23,18 @@ data_loader = DataLoader(
     "flow",
     [
         # filter only some locations
+        # ProcessingSteps.filter_rows(
+        #     lambda df: df["LOCATION"].isin(
+        #         ["WARRIGAL_RD N of HIGH STREET_RD", "HIGH STREET_RD E of WARRIGAL_RD"]
+        #     )
+        # ),
+        # TODO filter out dates before test date
+        # filter out most common date and day before
+        # filter to most common date or the day before
         ProcessingSteps.filter_rows(
-            lambda df: df["LOCATION"].isin(
-                ["WARRIGAL_RD N of HIGH STREET_RD", "HIGH STREET_RD E of WARRIGAL_RD"]
-            )
+            lambda df: df["DATE"].isin(
+                [most_common_date(df), day_before(most_common_date(df))]
+            ),
         ),
         # categorise location
         ProcessingSteps.categorise_column("LOCATION"),
@@ -34,6 +43,13 @@ data_loader = DataLoader(
             {
                 "LOCATION": "location",
             }
+        ),
+        # remove bad location
+        ProcessingSteps.filter_rows(
+            lambda df: df["location"] != "AUBURN_RD N of BURWOOD_RD"
+        ),
+        ProcessingSteps.filter_rows(
+            lambda df: df["location"] != "HIGH_ST NE of CHARLES_ST"
         ),
         # drop duplicates
         ProcessingSteps.drop_duplicates(),
@@ -45,7 +61,7 @@ data_loader = DataLoader(
 )
 
 training_config = TrainingConfig(
-    epochs=10,
+    epochs=50,
     batch_size=256,
     lags=12,
     train_test_proportion=0.7,
@@ -58,12 +74,18 @@ main_input_data = data_loader.create_train_test_split_from_df(
     training_config.lags,
 )
 
+# x shape
+
+print(main_input_data.x_test.shape)
+
 # train
 basic_model, hist_df, main_input_data = ModelTrainer.train(
     main_input_data, training_config, basic_model
 )
 
 y_true = main_input_data.y_test_original
+
+print(main_input_data.x_test.shape)
 
 # predict
 y_preds = basic_model.predict(main_input_data.x_test, main_input_data.scaler)
