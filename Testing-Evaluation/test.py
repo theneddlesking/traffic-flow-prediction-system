@@ -37,9 +37,15 @@ def get_location_id(lat, long):
     result = cursor.fetchone()
     return result[0] if result else None
 
+def calculate_accuracy(predicted_time, actual_time):
+    if actual_time == 0:
+        return 0
+    return 100 - abs((predicted_time - actual_time) / actual_time * 100)
+
 def compare_time_taken(input_file):
     df = pd.read_csv(input_file)
 
+    # Iterate over each row in the truedataCSV and compare them against basic_predictions
     return
 
 test_api_call(43, 71, '12:00')
