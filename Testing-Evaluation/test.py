@@ -29,12 +29,19 @@ def get_time_from_model(start_location_id, end_location_id, time_of_day):
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        return data.get("hours_taken")  #
+        return data.get("routes", [])[0].get("hours_taken", None)
     return None
 
-def compare_time_taken():
-    
+def get_location_id(lat, long):
+    cursor.execute("SELECT location_id FROM locations WHERE lat = ? AND long = ?", (lat, long))
+    result = cursor.fetchone()
+    return result[0] if result else None
+
+def compare_time_taken(input_file):
+    df = pd.read_csv(input_file)
+
     return
 
+test_api_call(43, 71, '12:00')
 
 input_file = '../true_data/cleanTrueData.csv'
