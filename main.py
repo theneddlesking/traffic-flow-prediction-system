@@ -14,7 +14,7 @@ lstm_units = [12, 64, 64, 1]
 gru_units = [12, 64, 64, 1]
 saes_units = [12, 400, 400, 400, 1]
 
-basic_model = Model(ModelBuilder.get_gru(gru_units), "basic_model")
+basic_model = Model(ModelBuilder.get_lstm(gru_units), "basic_lstm_model")
 
 CSV = "./data/vic/ScatsOctober2006.csv"
 
