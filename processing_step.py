@@ -85,3 +85,17 @@ class ProcessingSteps:
         """Categorise a column in a dataframe."""
         # using pandas astype to convert to category
         return lambda df: df.astype({column: "category"})
+    
+    # based on the most common date for all locations, filter out the rest
+    @staticmethod
+    def filter_most_common_date() -> Callable[[pd.DataFrame], pd.DataFrame]:
+        """Filter rows based on the most common date."""
+        # get the most common date of all the rows
+        # !NOTE: figure out how to handle rows that don't have the date
+
+        def inner(df: pd.DataFrame):
+            """Inner function to get the most common data of all the rows"""
+            most_common_date = df["DATE"].mode()[0]
+            return df[df["DATE"] == most_common_date]
+
+        return inner

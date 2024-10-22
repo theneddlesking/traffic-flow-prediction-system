@@ -210,6 +210,13 @@ class DataLoader:
     def peek(df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
         """Peek at the first n rows of a data frame."""
         return df.head(n)
+    
+    @staticmethod
+    def get_real_time_sources(
+        df: pd.DataFrame, lags: int, minutes_per_period: int
+    ) -> list[RealTimeSource]:
+        # print the length of df
+        print(f"df length: {len(df)}")
 
     @staticmethod
     def load_from_real_time_source(
