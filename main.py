@@ -41,6 +41,8 @@ data_loader = DataLoader(
         ProcessingSteps.get_flow_per_period(),
         # drop columns
         ProcessingSteps.filter_columns(["time", "flow", "location"]),
+        # TODO filter out bad location
+        # TODO filter out dates before test date
     ],
 )
 
