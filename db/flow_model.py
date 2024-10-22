@@ -1,4 +1,6 @@
 import pandas as pd
+from sklearn.discriminant_analysis import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from data_loader import DataLoader
 from db.sqlite_db import DBModel, SQLiteDB
 from model.nn_model import Model
@@ -60,25 +62,17 @@ class FlowPredictorModel(DBModel):
 
         preds = []
 
+        # TODO utilise batching to speed up predictions
+
         for i in range(0, len(real_time_data.day_of_flow_data)):
 
             x_test, scaler = DataLoader.load_from_real_time_source(real_time_data, i)
 
-            x_test = x_test.reshape(x_test.shape[0], x_test.shape[1])
-
             # get predictions
-            predictions = self.model.predict(x_test, scaler)
-
-            print(f"predictions: {predictions}")
-
-            # take last
-
-            last = predictions[-1]
-
-            print(f"first: {last}")
+            prediction = self.model.predict_from_last_n_batch([x_test], scaler)
 
             # add to preds
-            preds.append(last)
+            preds.append(prediction[0])
 
         return preds
 

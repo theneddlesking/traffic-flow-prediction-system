@@ -7,6 +7,7 @@ from model.model_trainer import ModelTrainer
 from model.nn_model import Model
 from model.model_builder import ModelBuilder
 from model.training_config import TrainingConfig
+from test import day_before, most_common_date
 
 
 lstm_units = [12, 64, 64, 1]
@@ -27,6 +28,14 @@ data_loader = DataLoader(
                 ["WARRIGAL_RD N of HIGH STREET_RD", "HIGH STREET_RD E of WARRIGAL_RD"]
             )
         ),
+        # TODO filter out dates before test date
+        # filter out most common date and day before
+        # filter to most common date or the day before
+        ProcessingSteps.filter_rows(
+            lambda df: df["DATE"].isin(
+                [most_common_date(df), day_before(most_common_date(df))]
+            ),
+        ),
         # categorise location
         ProcessingSteps.categorise_column("LOCATION"),
         # rename columns
@@ -45,7 +54,6 @@ data_loader = DataLoader(
         ProcessingSteps.get_flow_per_period(),
         # drop columns
         ProcessingSteps.filter_columns(["time", "flow", "location"]),
-        # TODO filter out dates before test date
     ],
 )
 

@@ -250,21 +250,17 @@ class DataLoader:
     @staticmethod
     def load_from_real_time_source(
         real_time_data: RealTimeSource, time_index: int
-    ) -> tuple[np.ndarray, MinMaxScaler]:
+    ) -> np.ndarray:
         """Load data from a real time source."""
 
         example_flow_set = real_time_data.get_lag_input_data_for_time(time_index)
 
-        print(f"example_flow_set: {example_flow_set}")
+        scaler = MinMaxScaler(feature_range=(0, 1)).fit(
+            np.array(example_flow_set).reshape(-1, 1)
+        )
 
-        x_test = np.array(example_flow_set)
+        example_flow_set = np.array(example_flow_set)
 
-        # reshape for LSTM
-        x_test = x_test.reshape(-1, 1)
+        # TODO consider heuristics later
 
-        # normalise
-        scaler = MinMaxScaler(feature_range=(0, 1)).fit(x_test.reshape(-1, 1))
-
-        x_test = scaler.transform(x_test)
-
-        return x_test, scaler
+        return example_flow_set, scaler
