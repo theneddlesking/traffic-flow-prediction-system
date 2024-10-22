@@ -85,3 +85,8 @@ class ProcessingSteps:
         """Categorise a column in a dataframe."""
         # using pandas astype to convert to category
         return lambda df: df.astype({column: "category"})
+
+    @staticmethod
+    def sort_by_column(column: str) -> Callable[[pd.DataFrame], pd.DataFrame]:
+        """Sort a dataframe by a column."""
+        return lambda df: df.sort_values(by=column)

@@ -1,19 +1,17 @@
 from data_loader import DataLoader
-from data_visualiser import DataVisualiser
-from model.model_result import ModelResult
+from model.model_builder import ModelBuilder
+from model.nn_model import Model
+from model.training_config import TrainingConfig
 from processing_step import ProcessingSteps
 
-from model.model_trainer import ModelTrainer
-from model.nn_model import Model
-from model.model_builder import ModelBuilder
-from model.training_config import TrainingConfig
+
+model = Model.load("./saved_models/basic_model.keras")
 
 
 lstm_units = [12, 64, 64, 1]
 gru_units = [12, 64, 64, 1]
 saes_units = [12, 400, 400, 400, 1]
 
-basic_model = Model(ModelBuilder.get_gru(gru_units), "basic_model")
 
 CSV = "./data/vic/ScatsOctober2006.csv"
 
@@ -63,38 +61,17 @@ main_input_data = data_loader.create_train_test_split_from_df(
     training_config.lags,
 )
 
-# x shape
+x_test = main_input_data.x_test
 
-print(main_input_data.x_test.shape)
+example_test = x_test[0]
 
-# train
-basic_model, hist_df, main_input_data = ModelTrainer.train(
-    main_input_data, training_config, basic_model
-)
+print(f"example_test: {example_test}")
 
-y_true = main_input_data.y_test_original
+# scale
 
-print(main_input_data.x_test.shape)
+# scaled = main_input_data.scaler.inverse_transform(example_test)
 
-# predict
-y_preds = basic_model.predict(main_input_data.x_test, main_input_data.scaler)
 
-# limit to one day
-y_true, y_preds = DataLoader.get_example_day(y_true, y_preds, training_config.lags)
+prediction = model.predict(example_test, main_input_data.scaler)
 
-# create flow time df
-preds_df = DataLoader.create_flow_time_df(y_preds)
-
-# result
-results = [
-    ModelResult(basic_model, y_preds),
-]
-
-# plot
-DataVisualiser.plot_results(results, y_true)
-
-# save plot
-DataVisualiser.save_plot("./results/visualisations/basic_model.png")
-
-# save model
-basic_model.save("./saved_models")
+print(f"prediction: {prediction}")

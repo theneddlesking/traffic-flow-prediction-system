@@ -1,5 +1,7 @@
 import pandas as pd
+from data_loader import DataLoader
 from db.sqlite_db import DBModel
+from processing_step import ProcessingSteps
 
 
 class SiteModel(DBModel):
@@ -38,33 +40,41 @@ class SiteModel(DBModel):
     def init_model(self):
         """Initialise the model with default locations."""
 
-        # TODO refactor this out to some kind of data loader
-
         csv = "./data/vic/ScatsOctober2006.csv"
 
-        df = pd.read_csv(csv, encoding="utf-8")
+        data_loader = DataLoader(
+            csv,
+            # arbitrary target
+            "site_number",
+            [
+                # keep only necessary columns
+                ProcessingSteps.filter_columns(
+                    [
+                        "SITE_NUMBER",
+                        "LOCATION",
+                        "NB_LATITUDE",
+                        "NB_LONGITUDE",
+                    ]
+                ),
+                # rename
+                ProcessingSteps.rename_columns(
+                    {
+                        "SITE_NUMBER": "site_number",
+                        "LOCATION": "name",
+                        "NB_LATITUDE": "lat",
+                        "NB_LONGITUDE": "long",
+                    }
+                ),
+                # filter out bad location
+                ProcessingSteps.filter_rows(
+                    lambda df: df["name"] != "AUBURN_RD N of BURWOOD_RD"
+                ),
+                # drop duplicates
+                ProcessingSteps.drop_duplicates(),
+            ],
+        )
 
-        cols_str = "SITE_NUMBER,LOCATION,NB_LATITUDE,NB_LONGITUDE"
-
-        cols = cols_str.split(",")
-
-        cols_mapping = {
-            "SITE_NUMBER": "site_number",
-            "LOCATION": "name",
-            "NB_LATITUDE": "lat",
-            "NB_LONGITUDE": "long",
-        }
-
-        df = df[cols]
-
-        df = df.rename(columns=cols_mapping)
-
-        # remove duplicates
-        df = df.drop_duplicates()
-
-        # remove row with name AUBURN_RD N of BURWOOD_RD, bad data
-
-        df = df[df["name"] != "AUBURN_RD N of BURWOOD_RD"]
+        df = data_loader.pre_processed_df
 
         # add to db
         self.db.create_table_from_df(df, "locations")

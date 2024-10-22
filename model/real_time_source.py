@@ -7,10 +7,12 @@ class RealTimeSource:
         day_of_flow_data: list[int],
         lag_flow_data_from_day_before: list[int],
         location_id: int,
+        location_name: str,
     ):
         self.lag_flow_data_from_day_before = lag_flow_data_from_day_before
         self.day_of_flow_data = day_of_flow_data
         self.location_id = location_id
+        self.location_name = location_name
 
         self.lags = len(lag_flow_data_from_day_before)
 

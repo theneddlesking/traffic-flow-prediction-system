@@ -210,13 +210,42 @@ class DataLoader:
     def peek(df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
         """Peek at the first n rows of a data frame."""
         return df.head(n)
-    
+
     @staticmethod
     def get_real_time_sources(
         df: pd.DataFrame, lags: int, minutes_per_period: int
     ) -> list[RealTimeSource]:
-        # print the length of df
-        print(f"df length: {len(df)}")
+        # group by location
+
+        grouped = df.groupby("location")
+
+        real_time_sources = []
+
+        location_id = 0
+
+        for name, group in grouped:
+            location_id += 1
+
+            day_before = group.iloc[0]
+            day_of = group.iloc[1]
+
+            # combine V00 to V95
+            day_before_flow = day_before["V00":"V95"].values
+
+            # get first 12
+            day_before_flow = day_before_flow[:lags]
+
+            # get flow for the day
+            day_of_flow = day_of["V00":"V95"].values
+
+            # create real time source
+            real_time_source = RealTimeSource(
+                day_of_flow, day_before_flow, location_id, name
+            )
+
+            real_time_sources.append(real_time_source)
+
+        return real_time_sources
 
     @staticmethod
     def load_from_real_time_source(
@@ -225,6 +254,8 @@ class DataLoader:
         """Load data from a real time source."""
 
         example_flow_set = real_time_data.get_lag_input_data_for_time(time_index)
+
+        print(f"example_flow_set: {example_flow_set}")
 
         x_test = np.array(example_flow_set)
 

@@ -69,12 +69,16 @@ class FlowPredictorModel(DBModel):
             # get predictions
             predictions = self.model.predict(x_test, scaler)
 
-            # take first
+            print(f"predictions: {predictions}")
 
-            first = predictions[0]
+            # take last
+
+            last = predictions[-1]
+
+            print(f"first: {last}")
 
             # add to preds
-            preds.append(first)
+            preds.append(last)
 
         return preds
 
