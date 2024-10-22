@@ -1,3 +1,4 @@
+import numpy as np
 from data_loader import DataLoader
 from model.model_builder import ModelBuilder
 from model.nn_model import Model
@@ -21,9 +22,7 @@ data_loader = DataLoader(
     [
         # filter only some locations
         ProcessingSteps.filter_rows(
-            lambda df: df["LOCATION"].isin(
-                ["WARRIGAL_RD N of HIGH STREET_RD", "HIGH STREET_RD E of WARRIGAL_RD"]
-            )
+            lambda df: df["LOCATION"].isin(["WARRIGAL_RD N of HIGH STREET_RD"])
         ),
         # categorise location
         ProcessingSteps.categorise_column("LOCATION"),
@@ -61,17 +60,13 @@ main_input_data = data_loader.create_train_test_split_from_df(
     training_config.lags,
 )
 
-x_test = main_input_data.x_test
+x_test = [
+    [32, 30, 20, 19, 16, 25, 10, 9, 6, 6, 6, 12],
+    [6, 12, 11, 7, 8, 4, 10, 7, 10, 12, 20, 43],
+    # bigs one
+    [46, 53, 53, 43, 59, 75, 100, 103, 125, 141, 148, 175],
+]
 
-example_test = x_test[0]
-
-print(f"example_test: {example_test}")
-
-# scale
-
-# scaled = main_input_data.scaler.inverse_transform(example_test)
-
-
-prediction = model.predict(example_test, main_input_data.scaler)
+prediction = model.predict_from_last_n_batch(x_test, main_input_data.scaler)
 
 print(f"prediction: {prediction}")

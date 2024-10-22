@@ -50,7 +50,7 @@ data_loader = DataLoader(
 )
 
 training_config = TrainingConfig(
-    epochs=50,
+    epochs=200,
     batch_size=256,
     lags=12,
     train_test_proportion=0.7,
