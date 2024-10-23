@@ -2,6 +2,7 @@ import pandas as pd
 import requests
 import sqlite3
 from sklearn.metrics import f1_score
+import re
 
 db_path = "site.db"
 conn = sqlite3.connect(db_path)
@@ -17,11 +18,10 @@ def get_time_from_model(start_location_id, end_location_id, time_of_day):
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        print(f"API Response: {data}")  # Print the full response for debugging
-        
-        # Check if 'routes' key is present and extract the 'hours_taken' from it
+        #print(f"API Response: {data}")  # Print the full response
+
         if 'routes' in data and len(data['routes']) > 0:
-            return data['routes'][0].get('hours_taken')  # Get hours_taken from the first route
+            return data['routes'][0].get('hours_taken')  # Get hours taken from the first route
         else:
             print("No routes found in the API response")
             return None
@@ -29,7 +29,22 @@ def get_time_from_model(start_location_id, end_location_id, time_of_day):
         print(f"API call failed with status code: {response.status_code}")
     return None
 
-
+def parse_actual_time(actual_time_str):
+    #Regex pattern to capture hours and minutes
+    pattern = r"(\d+)\s*hours?\s*(\d+)?\s*mins?"
+    match = re.search(pattern, actual_time_str)
+    
+    if match:
+        hours = int(match.group(1))
+        minutes = int(match.group(2)) if match.group(2) else 0
+        return hours + (minutes / 60)
+    
+    # Handle where time is in min
+    if "mins" in actual_time_str:
+        minutes = int(re.search(r"(\d+)\s*mins?", actual_time_str).group(1))
+        return minutes / 60
+    
+    return None
 
 def calculate_accuracy(predicted_time, actual_time):
     if actual_time == 0:
@@ -62,18 +77,21 @@ def compare_time_taken(input_file):
         start_long = row['START_LONG']
         end_lat = row['END_LAT']
         end_long = row['END_LONG']
-        actual_time = row['Time_Taken']
+        actual_time_str = row['Time_Taken']
         time_of_day = row['Time']
 
-        # Get the location IDs
+        #Parse actual_time from string to float
+        actual_time = parse_actual_time(actual_time_str)
+
         start_location_id = get_location_id(start_lat, start_long)
         end_location_id = get_location_id(end_lat, end_long)
 
-        if start_location_id and end_location_id:
+        if start_location_id and end_location_id and actual_time is not None:
             predicted_time = get_time_from_model(start_location_id, end_location_id, time_of_day)
             print(f"{predicted_time}")
             
             if predicted_time is not None:
+                
                 accuracy = calculate_accuracy(predicted_time, actual_time)
                 total_accuracy += accuracy
                 valid_rows += 1
@@ -99,6 +117,7 @@ def compare_time_taken(input_file):
         print(f"Overall accuracy and F1-Score saved to {accuracy_file}")
     else:
         print("No valid rows to calculate overall accuracy.")
+
 
 input_file = 'MainEvaluation.csv'
 compare_time_taken(input_file)
