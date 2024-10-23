@@ -86,6 +86,15 @@ function Map() {
   }, [routes]);
 
   useEffect(() => {
+    if (route === null) {
+      return;
+    }
+
+    setWaypoints(route.waypoints);
+    setHoursTaken(route.hours_taken);
+  }, [route]);
+
+  useEffect(() => {
     if (startPoint && endPoint) {
       generateRoute(startPoint, endPoint);
     }
