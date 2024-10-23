@@ -23,20 +23,30 @@ function Map() {
   const [model, setModel] = useState('');
   const [hoursTaken, setHoursTaken] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadingData, setLoadingData] = useState<boolean>(true);
+
+  const options = {
+    showConnections : false,
+    showIntersections : false,
+    showLocations : true,
+    showRoutes : true,
+    skipLoadingScreen : true
+  }
 
   const {
     locations,
     intersections,
     connections,
     allModels
-  } = useFetchData(setError); 
+  } = useFetchData(setError, options.skipLoadingScreen); 
 
-  const options = {
-    showConnections : false,
-    showIntersections : false,
-    showLocations : true,
-    showRoutes : true
-  }
+  // loading complete
+  useEffect(() => {
+    if (locations.length > 0) {
+      setLoadingData(false);
+    }
+  }, [locations]);
+
 
   const generateRoute = useCallback(async (routeStartPoint: Location, routeEndPoint: Location) => {
     setLoading(true);
@@ -119,39 +129,52 @@ function Map() {
         model={model}
       />
 
-      <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
-        <TileLayer
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-        />
+      {/* loading */}
+      {loadingData && (
+        <div className="spinner-container">
+          <div className="spinner"></div>
+        </div>
+      )}
 
-        {/* render locations */}
-        {options.showLocations && locations.map((location, index) => (
-          <Marker key={index} position={[location.lat, location.long]} icon={dotIcon}>
-            <Popup>
-              <strong>{location.site_number}</strong> - {location.name}
-              <br />
-              <button onClick={() => setStartPointAndFetchTraffic(location)}>Set Start Point</button>
-              <button onClick={() => setEndPointAndFetchTraffic(location)}>Set Destination</button>
-            </Popup>
-          </Marker>
-        ))}
+      {
+        !loadingData && (
+          <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
+          <TileLayer
+            attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          />
+  
+          {/* render locations */}
+          {options.showLocations && locations.map((location, index) => (
+            <Marker key={index} position={[location.lat, location.long]} icon={dotIcon}>
+              <Popup>
+                <strong>{location.site_number}</strong> - {location.name}
+                <br />
+                <button onClick={() => setStartPointAndFetchTraffic(location)}>Set Start Point</button>
+                <button onClick={() => setEndPointAndFetchTraffic(location)}>Set Destination</button>
+              </Popup>
+            </Marker>
+          ))}
+  
+          {/* render intersections */}
+          {options.showIntersections && intersections.map((intersection, index) => (
+            <Marker key={index} position={[intersection.lat, intersection.long]} icon={dotIcon} />
+          ))}
+  
+          {/* render connections */}
+          {options.showConnections && connections.map((connection, index) => (
+            <Polyline key={index} positions={[[connection.intersection.lat, connection.intersection.long], [connection.other_intersection.lat, connection.other_intersection.long]]} pathOptions={{ color: '#f0bab4' }} />
+          ))}
+  
+          {/* draw routes */}
+          {options.showRoutes && routes.map((route, index) => (
+            <Polyline key={index} positions={route.waypoints.map(w => [w.lat, w.long])} pathOptions={{ color: getRouteColour(index) }} />
+          ))}
+        </MapContainer>
+        )
+      }
 
-        {/* render intersections */}
-        {options.showIntersections && intersections.map((intersection, index) => (
-          <Marker key={index} position={[intersection.lat, intersection.long]} icon={dotIcon} />
-        ))}
-
-        {/* render connections */}
-        {options.showConnections && connections.map((connection, index) => (
-          <Polyline key={index} positions={[[connection.intersection.lat, connection.intersection.long], [connection.other_intersection.lat, connection.other_intersection.long]]} pathOptions={{ color: '#f0bab4' }} />
-        ))}
-
-        {/* draw routes */}
-        {options.showRoutes && routes.map((route, index) => (
-          <Polyline key={index} positions={route.waypoints.map(w => [w.lat, w.long])} pathOptions={{ color: getRouteColour(index) }} />
-        ))}
-      </MapContainer>
+     
 
       <div className='padding-div' />
     </div>
