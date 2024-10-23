@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 import sqlite3
 
-db_path = "../db/site.db"
+db_path = "db/site.db"
 
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
