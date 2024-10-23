@@ -24,6 +24,7 @@ function Map() {
   const [hoursTaken, setHoursTaken] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingData, setLoadingData] = useState<boolean>(true);
+  const [route, setRoute] = useState<Route | null>(null);
 
   const options = {
     showConnections : false,
@@ -79,6 +80,12 @@ function Map() {
   }, [allModels]);
 
   useEffect(() => {
+    if (routes.length > 0) {
+      setRoute(routes[0]);
+    }
+  }, [routes]);
+
+  useEffect(() => {
     if (startPoint && endPoint) {
       generateRoute(startPoint, endPoint);
     }
@@ -97,11 +104,25 @@ function Map() {
     iconSize: [15, 15],
   });
 
-  const getRouteColour = (index: number) => {
+  const getRouteColour = (someRoute: Route) => {
     // blue, red, green, yellow, pink, cyan
-    const colours = ['blue', 'red', 'green','yellow', 'pink', 'cyan'];
-    return colours[index % colours.length
-    ];
+    const currentRouteColor = "blue";
+    const unselectedRouteColor = "gray";
+
+    return route === someRoute ? currentRouteColor : unselectedRouteColor;
+  }
+
+  // TODO maybe use useMemo or something
+  const getOrderedRoutes = () => {
+    // put the selected route last
+
+    const orderedRoutes = routes.filter(r => r !== route);
+
+    if (route) {
+      orderedRoutes.push(route);
+    }
+
+    return orderedRoutes;
   }
 
   return (
@@ -127,6 +148,9 @@ function Map() {
         waypoints={waypoints}
         loading={loading}
         model={model}
+        setRoute={setRoute}
+        routes={routes}
+        route={route}
       />
 
       {/* loading */}
@@ -167,14 +191,17 @@ function Map() {
           ))}
   
           {/* draw routes */}
-          {options.showRoutes && routes.map((route, index) => (
-            <Polyline key={index} positions={route.waypoints.map(w => [w.lat, w.long])} pathOptions={{ color: getRouteColour(index) }} />
+
+          {/* draw the non selected routes */}
+          {options.showRoutes && getOrderedRoutes().map((currentRoute, index) => (
+
+            <Polyline key={index} positions={currentRoute.waypoints.map(w => [w.lat, w.long])} pathOptions={{ color: getRouteColour(currentRoute) }} />
           ))}
+          
         </MapContainer>
+
         )
       }
-
-     
 
       <div className='padding-div' />
     </div>
