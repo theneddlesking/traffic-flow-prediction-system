@@ -4,6 +4,7 @@ import os
 import csv
 import requests
 import time
+import random
 from datetime import datetime, timedelta
 from geopy.distance import geodesic
 
@@ -28,7 +29,7 @@ def calculate_distance(start_lat, start_long, end_lat, end_long):
 def get_travel_time(start_lat, start_long, end_lat, end_long, departure_time):
     """Call the Google Maps API to get travel time between two points at a given time."""
     distance = calculate_distance(start_lat, start_long, end_lat, end_long)
-    if distance < 2:  # Avoid routes that are too short
+    if distance < 2:
         print(f"Skipping route due to short distance: {distance} km between {start_lat},{start_long} and {end_lat},{end_long}")
         return "Too close - Skipped"
 
@@ -58,7 +59,7 @@ def simulate_times(start_lat, start_long, end_lat, end_long):
 
     results = {}
     for hour, minute in times_of_day:
-        departure_time = get_unix_timestamp(0, hour, minute)  # Use Monday as the base day
+        departure_time = get_unix_timestamp(0, hour, minute)  # Use Monday as base
         duration = get_travel_time(start_lat, start_long, end_lat, end_long, departure_time)
         results[f"{hour}:{minute}"] = duration
         print(f"Time {hour}:{minute}: {duration}")
@@ -66,8 +67,9 @@ def simulate_times(start_lat, start_long, end_lat, end_long):
     return results
 
 def main(input_csv, output_csv, max_routes=200, min_distance_km=5):
-    """Process the routes and limit output to 200 diverse routes with a minimum distance."""
+    """Process the routes and ensure no duplicate starting points."""
     route_table = set()
+    used_start_points = set()  # Track unique start points
     route_id = 1
     valid_routes_count = 0
 
@@ -78,9 +80,16 @@ def main(input_csv, output_csv, max_routes=200, min_distance_km=5):
         writer = csv.DictWriter(outfile, fieldnames=fieldnames)
         writer.writeheader()
 
+        random.shuffle(rows)  # Shuffle rows for random start points
+
         for start_row in rows:
             start_lat = start_row['NB_LATITUDE']
             start_long = start_row['NB_LONGITUDE']
+
+            # Ensure unique start points
+            start_key = (start_lat, start_long)
+            if start_key in used_start_points:
+                continue  # Skip if start point has already been used
 
             for end_row in rows:
                 end_lat = end_row['NB_LATITUDE']
@@ -90,17 +99,14 @@ def main(input_csv, output_csv, max_routes=200, min_distance_km=5):
                 if start_lat == end_lat and start_long == end_long:
                     continue
 
-                # Ensure routes are at least a certain minimum distance apart (e.g., 5 km)
+                # Add the start point to the used set
+                used_start_points.add(start_key)
+
+                # Check distance between points
                 if calculate_distance(start_lat, start_long, end_lat, end_long) < min_distance_km:
                     continue
 
-                route_key = (start_lat, start_long, end_lat, end_long)
-                if route_key in route_table:
-                    continue  # Skip if route already exists
-
-                # Add the new route to the route_table
-                route_table.add(route_key)
-
+                # Simulate travel times
                 results = simulate_times(start_lat, start_long, end_lat, end_long)
 
                 for time_of_day, duration in results.items():
