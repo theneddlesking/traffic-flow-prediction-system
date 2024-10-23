@@ -7,7 +7,7 @@ db_path = "site.db"
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
-#testing
+# Function to test the API call
 def test_api_call(start_location_id, end_location_id, time_of_day):
     url = f"http://localhost:8000/routing/route?start_location_id={start_location_id}&end_location_id={end_location_id}&time_of_day={time_of_day}"
     response = requests.get(url)
@@ -17,12 +17,13 @@ def test_api_call(start_location_id, end_location_id, time_of_day):
     else:
         print(f"API call failed with status code: {response.status_code}")
 
-
+# Function to get the location_id from latitude and longitude
 def get_location_id(lat, long):
-    cursor.execute("SELECT location_id FROM locations WHERE latitude = ? AND longitude = ?", (lat, long))
+    cursor.execute("SELECT id FROM locations WHERE lat = ? AND long = ?", (lat, long))
     result = cursor.fetchone()
     return result[0] if result else None
 
+# Function to get time prediction from the model
 def get_time_from_model(start_location_id, end_location_id, time_of_day):
     url = f"http://localhost:8000/routing/route?start_location_id={start_location_id}&end_location_id={end_location_id}&time_of_day={time_of_day}"
     response = requests.get(url)
@@ -34,11 +35,13 @@ def get_time_from_model(start_location_id, end_location_id, time_of_day):
         print(f"API call failed with status code: {response.status_code}")
     return None
 
+# Function to calculate accuracy of prediction
 def calculate_accuracy(predicted_time, actual_time):
     if actual_time == 0:
         return 0
     return 100 - abs((predicted_time - actual_time) / actual_time * 100)
 
+# Function to compare the time taken between actual data and predictions
 def compare_time_taken(input_file):
     df = pd.read_csv(input_file)
 
@@ -46,7 +49,7 @@ def compare_time_taken(input_file):
     
     total_accuracy = 0
     valid_rows = 0 
-    # Iterate over each row in the truedataCSV and compare them against basic_predictions
+    # Iterate over each row in the true data CSV and compare them against basic_predictions
 
     for index, row in df.iterrows():
         start_lat = row['START_LAT']
@@ -70,9 +73,11 @@ def compare_time_taken(input_file):
 
                 results.append((start_lat, start_long, end_lat, end_long, actual_time, predicted_time, accuracy))
 
+    # Save results to CSV
     results_df = pd.DataFrame(results, columns=['START_LAT', 'START_LONG', 'END_LAT', 'END_LONG', 'Actual_Time_Taken', 'Predicted_Time_Taken', 'Accuracy'])
     results_df.to_csv('results.csv', index=False)
 
+    # Save overall accuracy to a text file
     if valid_rows > 0:
         overall_accuracy = total_accuracy / valid_rows
         accuracy_file = 'model_accuracy.txt'
@@ -82,7 +87,6 @@ def compare_time_taken(input_file):
     else:
         print("No valid rows to calculate overall accuracy.")
 
-#test_api_call(43, 71, '12:00') #testing
-
+# Run the comparison with the provided CSV file
 input_file = 'cleanTrueData.csv'
 compare_time_taken(input_file)
