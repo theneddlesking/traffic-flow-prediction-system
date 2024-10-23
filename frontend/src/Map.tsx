@@ -1,245 +1,220 @@
 import axios from 'axios';
 import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
 import './App.css';
-
 import MapSidebar from './MapSidebar';
-import type { Connection, Intersection, Location, Route, RoutingPoint } from './types';
-
+import type { Location, Route, RoutingPoint } from './types';
+import useFetchData from './useFetchData';
 
 type RoutingResponse = {
   routes: Route[];
   error?: string;
-}
-
-type IntersectionResponse = {
-  "intersections" : Intersection[];
-};
-
-type ConnectionResponse = {
-  "connections": Connection[];
 };
 
 function Map() {
-  const [locations, setLocations] = useState<Location[]>([]);
   const [startPoint, setStartPoint] = useState<Location | null>(null);
   const [endPoint, setEndPoint] = useState<Location | null>(null);
   const [waypoints, setWaypoints] = useState<RoutingPoint[]>([]);
-  const [intersections, setIntersections] = useState<Intersection[]>([]);
-  const [connections, setConnections] = useState<Connection[]>([]);
-
-  const [error, setError] = useState<string | null>(null);
-
-  const SHOW_INTERSECTIONS = false;
-  const SHOW_CONNECTIONS = false;
-  const DEMO = true;
-
-
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [timeOfDay, setTimeOfDay] = useState('12:00');
-
+  const [model, setModel] = useState('');
   const [hoursTaken, setHoursTaken] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loadingData, setLoadingData] = useState<boolean>(true);
+  const [route, setRoute] = useState<Route | null>(null);
 
-  const generateRoute = async (routeStartPoint: Location, routeEndPoint: Location) => {
+  const options = {
+    showConnections : false,
+    showIntersections : false,
+    showLocations : true,
+    showRoutes : true,
+    skipLoadingScreen : true
+  }
 
-    // fetch route from backend
-    const res = await axios.get<RoutingResponse>(`http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}`)
+  const {
+    locations,
+    intersections,
+    connections,
+    allModels
+  } = useFetchData(setError, options.skipLoadingScreen); 
 
-    // handle error
-    if (res.data.error) {
-      console.error(res.data.error);
-      setError(`There was an error fetching the route between ${routeStartPoint.location_id} and ${routeEndPoint.location_id} - ${res.data.error}`);
+  // loading complete
+  useEffect(() => {
+    if (locations.length > 0) {
+      setLoadingData(false);
+    }
+  }, [locations]);
+
+
+  const generateRoute = useCallback(async (routeStartPoint: Location, routeEndPoint: Location) => {
+    setLoading(true);
+    try {
+      const res = await axios.get<RoutingResponse>(
+        `http://localhost:8000/routing/route?start_location_id=${routeStartPoint.location_id}&end_location_id=${routeEndPoint.location_id}&time_of_day=${timeOfDay}&model_name=${model}`
+      );
+      setLoading(false);
+
+      if (res.data.error) {
+        setError(`Error fetching route: ${res.data.error}`);
+        return;
+      }
+
+      const bestRoute = res.data.routes[0];
+      setWaypoints(bestRoute.waypoints);
+      setHoursTaken(bestRoute.hours_taken);
+      setRoutes(res.data.routes);
+
+    } catch (err) {
+      setLoading(false);
+      setError(`Error fetching route: ${err}`);
+    }
+  }, [timeOfDay, model]);
+
+  useEffect(() => {
+    if (allModels.length > 0) {
+      setModel(allModels[0]); 
+    }
+  }, [allModels]);
+
+  useEffect(() => {
+    if (routes.length > 0) {
+      setRoute(routes[0]);
+    }
+  }, [routes]);
+
+  useEffect(() => {
+    if (route === null) {
       return;
     }
 
-    const bestRoute = res.data.routes[0];
-
-    const routeWaypoints = bestRoute.waypoints;
-
-    const routeHours = bestRoute.hours_taken;
-
-    setWaypoints(routeWaypoints);
-
-    setHoursTaken(routeHours);
-
-    console.log(`Route takes ${routeHours} hours`);
-  }
+    setWaypoints(route.waypoints);
+    setHoursTaken(route.hours_taken);
+  }, [route]);
 
   useEffect(() => {
-    axios.get<{ locations: Location[] }>('http://127.0.0.1:8000/site/locations')
-      .then(locations => {
-        console.log("original locations");
-        console.log(locations.data.locations);
+    if (startPoint && endPoint) {
+      generateRoute(startPoint, endPoint);
+    }
+  }, [startPoint, endPoint, timeOfDay, model, generateRoute]);
 
-        setLocations(locations.data.locations);
-      })
-      .catch(error => {
-        console.error('There was an error fetching the data!', error);
-        setError(`There was an error fetching location data - ${error}`);
-      });
-  }, []);
+  const setStartPointAndFetchTraffic = (location: Location | null) => {
+    setStartPoint(location);
+  };
 
-  useEffect(() => {
-    axios.get<IntersectionResponse>('http://127.0.0.1:8000/site/intersections')
-      .then(intersections => {
-
-        const intersectionsArray = intersections.data.intersections;
-
-        console.log("intersections");
-        console.log(intersectionsArray);
-
-        setIntersections(intersectionsArray);
-      }
-      )
-      .catch(error => {
-        console.error('There was an error fetching the data!', error);
-        setError(`There was an error fetching intersection data - ${error}`);
-      });
-    }, []);
-
-  useEffect(() => {
-    axios.get<ConnectionResponse>('http://127.0.0.1:8000/site/connections')
-      .then(connections => {
-
-        const connectionsArr = connections.data.connections;
-
-        console.log("connections");
-        console.log(connectionsArr);
-
-        setConnections(connectionsArr);
-      })
-      .catch(error => {
-        console.error('There was an error fetching the data!', error);
-        setError(`There was an error fetching connection data - ${error}`);
-      });
-  }, []);
-
+  const setEndPointAndFetchTraffic = (location: Location | null) => {
+    setEndPoint(location);
+  };
 
   const dotIcon = new Icon({
     iconUrl: 'https://img.icons8.com/?size=100&id=24801&format=png&color=000000',
-    iconSize: [15, 15]
+    iconSize: [15, 15],
   });
 
-  const intersectionIcon = new Icon({
-    iconUrl: 'https://img.icons8.com/?size=100&id=24801&format=png&color=ab5543',
-    iconSize: [15, 15]
-  });
+  const getRouteColour = (someRoute: Route) => {
+    // blue, red, green, yellow, pink, cyan
+    const currentRouteColor = "blue";
+    const unselectedRouteColor = "gray";
 
-
-  const setStartPointAndFetchTraffic = async (location: Location | null) => {
-    setStartPoint(location);
-
-    if (location !== null && endPoint !== null) {
-        generateRoute(location, endPoint);
-    }
-  };
-
-  const setEndPointAndFetchTraffic = async (location: Location | null) => {
-    setEndPoint(location);
-
-    if (location !== null && startPoint !== null) {
-      generateRoute(startPoint, location);
-    }
-  };
-
-  function getRandomColor() {
-
-    // TEMP
-    if (DEMO) {
-      return "blue";
-    }
-
-
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+    return route === someRoute ? currentRouteColor : unselectedRouteColor;
   }
 
-  const waypointCoordinates = getLineSegments(waypoints);
+  // TODO maybe use useMemo or something
+  const getOrderedRoutes = () => {
+    // put the selected route last
 
-  function getLineSegments(waypoints: RoutingPoint[]) {
-    const segments = [];
+    const orderedRoutes = routes.filter(r => r !== route);
 
-    console.log('waypoints');
-    console.log(waypoints);
-
-    for (let i = 0; i < waypoints.length - 1; i++) {
-      const start = waypoints[i];
-      const end = waypoints[i + 1];
-
-      segments.push([[start.lat, start.long], [end.lat, end.long]]);
+    if (route) {
+      orderedRoutes.push(route);
     }
 
-    console.log('segments');
-    console.log(segments);
-
-    return segments;
+    return orderedRoutes;
   }
 
   return (
     <div className='map-container'>
-      {error && <div className="error-banner">{error}</div>}
+      {error && (
+        <div className="error-banner">
+          <span>{error}</span>
+          <button className="close-button" onClick={() => setError(null)}>&times;</button>
+        </div>
+      )}
 
-      <MapSidebar startPoint={startPoint} endPoint={endPoint} setStartPoint={setStartPointAndFetchTraffic} setEndPoint={setEndPointAndFetchTraffic} timeOfDay={timeOfDay} setTimeOfDay={(time) => setTimeOfDay(time)} locations={locations} hoursTaken={hoursTaken || 0} waypoints={waypoints} />
+      <MapSidebar
+        startPoint={startPoint}
+        endPoint={endPoint}
+        setStartPoint={setStartPointAndFetchTraffic}
+        setEndPoint={setEndPointAndFetchTraffic}
+        timeOfDay={timeOfDay}
+        setTimeOfDay={setTimeOfDay}
+        setModel={setModel}
+        allModels={allModels}
+        locations={locations}
+        hoursTaken={hoursTaken || 0}
+        waypoints={waypoints}
+        loading={loading}
+        model={model}
+        setRoute={setRoute}
+        routes={routes}
+        route={route}
+      />
 
-      <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
-        <TileLayer
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+      {/* loading */}
+      {loadingData && (
+        <div className="spinner-container">
+          <div className="spinner"></div>
+        </div>
+      )}
+
+      {
+        !loadingData && (
+          <MapContainer center={[-37.8095, 145.0351]} zoom={13} scrollWheelZoom={true}>
+          <TileLayer
+            attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
-
-        {/* locations */}
-        {locations.map(location => (
-            <Marker key={location.location_id} position={[location.lat, location.long]} icon={dotIcon}
-              eventHandlers={{
-                mouseover: (e) => {
-                  const marker = e.target;
-                  marker.openPopup();
-                }
-              }}
-            >
+  
+          {/* render locations */}
+          {options.showLocations && locations.map((location, index) => (
+            <Marker key={index} position={[location.lat, location.long]} icon={dotIcon}>
               <Popup>
-                <div>
-                  <strong>{location.site_number}</strong> - {location.name}
-                  <br />
-                  <button onClick={() => {
-                    setStartPointAndFetchTraffic(location);
-                  }}>Set Start Point</button>
-                  <button onClick={() => {
-                    setEndPointAndFetchTraffic(location);
-                  }}>Set Destination</button>
-                </div>
+                <strong>{location.site_number}</strong> - {location.name}
+                <br />
+                <button onClick={() => setStartPointAndFetchTraffic(location)}>Set Start Point</button>
+                <button onClick={() => setEndPointAndFetchTraffic(location)}>Set Destination</button>
               </Popup>
             </Marker>
-        ))}
+          ))}
+  
+          {/* render intersections */}
+          {options.showIntersections && intersections.map((intersection, index) => (
+            <Marker key={index} position={[intersection.lat, intersection.long]} icon={dotIcon} />
+          ))}
+  
+          {/* render connections */}
+          {options.showConnections && connections.map((connection, index) => (
+            <Polyline key={index} positions={[[connection.intersection.lat, connection.intersection.long], [connection.other_intersection.lat, connection.other_intersection.long]]} pathOptions={{ color: '#f0bab4' }} />
+          ))}
+  
+          {/* draw routes */}
 
-        {/* intersections */}
-        {SHOW_INTERSECTIONS && intersections.map(intersection => (
-          <Marker key={intersection.lat + intersection.long} position={[intersection.lat, intersection.long]} icon={intersectionIcon} />
-        ))}
+          {/* draw the non selected routes */}
+          {options.showRoutes && getOrderedRoutes().map((currentRoute, index) => (
 
-        {/* connections */}
-        {SHOW_CONNECTIONS && connections.map(connection => (
-          <Polyline key={connection.intersection.lat + connection.other_intersection.lat} positions={[[connection.intersection.lat, connection.intersection.long], [connection.other_intersection.lat, connection.other_intersection.long]]} pathOptions={{color: '#f0bab4'}} />
-        ))}
+            <Polyline key={index} positions={currentRoute.waypoints.map(w => [w.lat, w.long])} pathOptions={{ color: getRouteColour(currentRoute) }} />
+          ))}
+          
+        </MapContainer>
 
-      {/* draws the route */}
-      {/* <Polyline positions={waypointCoordinates} pathOptions={{color: getRandomColor() }} />     */}
-      {
-        waypointCoordinates.map((segment: unknown, index) => (
-          <Polyline key={index} positions={segment as L.LatLng[]} pathOptions={{color: getRandomColor() }} />
-        ))
+        )
       }
 
-
-      </MapContainer>
       <div className='padding-div' />
     </div>
-  )
+  );
 }
 
 export default Map;

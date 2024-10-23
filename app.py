@@ -41,9 +41,10 @@ APP_DIR = "/app"
 # fix dist
 fix_dist(APP_DIR)
 
+
 # serve static files from the build directory
 app.mount(APP_DIR, StaticFiles(directory="./frontend/dist", html=True), name="static")
 
 
 # to run this api from the main directory:
-# uvicorn test_api:app --reload
+# uvicorn app:app --reload

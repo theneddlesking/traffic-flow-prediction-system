@@ -1,3 +1,4 @@
+from model.nn_model import Model
 from routing.astar import a_star
 from routing.heuristics import Heuristics
 from routing.point import RoutingPoint
@@ -20,14 +21,24 @@ class AStarRouter(Router):
         end: RoutingPoint,
         time_of_day: str,
         network: RoadNetwork,
+        model: Model,
     ) -> Route:
         """Find the shortest route between two RoutingPoints using the A* algorithm."""
 
+        time_graph = await self.get_time_graph_for_model(network, time_of_day, model)
+
+        return self.find_route_from_time_graph(start, end, time_graph, network, model)
+
+    async def get_time_graph_for_model(
+        self, network: RoadNetwork, time_of_day: str, model: Model
+    ) -> TimeGraph:
+        """Get the time graph for a model."""
+
         time_graph = await TimeGraph(
             network, self.time_estimator, time_of_day
-        ).initialise()
+        ).initialise(model)
 
-        return self.find_route_from_time_graph(start, end, time_graph, network)
+        return time_graph
 
     def find_route_from_time_graph(
         self,
@@ -35,6 +46,7 @@ class AStarRouter(Router):
         end: RoutingPoint,
         time_graph: TimeGraph,
         network: RoadNetwork,
+        model: Model,
     ) -> Route:
         """Find the shortest route between two RoutingPoints using the A* algorithm."""
 
@@ -62,16 +74,17 @@ class AStarRouter(Router):
         end: RoutingPoint,
         time_of_day: str,
         network: RoadNetwork,
+        model: Model,
     ) -> list[Route]:
         """Find the best routes between two points using Penalty A* algorithm."""
 
-        time_graph = await TimeGraph(
-            network, self.time_estimator, time_of_day
-        ).initialise()
+        time_graph = await self.get_time_graph_for_model(network, time_of_day, model)
 
-        best_routes = []
+        best_routes: list[Route] = []
 
-        initial_route = self.find_route_from_time_graph(start, end, time_graph, network)
+        initial_route = self.find_route_from_time_graph(
+            start, end, time_graph, network, model
+        )
 
         if initial_route is None:
             return []
@@ -103,7 +116,7 @@ class AStarRouter(Router):
 
             # find the next best route
             next_best_route = self.find_route_from_time_graph(
-                start, end, time_graph, network
+                start, end, time_graph, network, model
             )
 
             # TODO check route instead of exact match, check if they are substantially different
@@ -127,13 +140,13 @@ class AStarRouter(Router):
             # phony network that only contains the waypoints of the route
             phony_network = RoadNetwork(route.waypoints)
 
-            new_time_graph = await TimeGraph(
-                phony_network, self.time_estimator, time_of_day
-            ).initialise()
+            new_time_graph = await self.get_time_graph_for_model(
+                phony_network, time_of_day, model
+            )
 
             # find the actual time taken
             actual_route = self.find_route_from_time_graph(
-                start, end, new_time_graph, phony_network
+                start, end, new_time_graph, phony_network, model
             )
 
             actual_routes.append(actual_route)
