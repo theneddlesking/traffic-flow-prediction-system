@@ -17,10 +17,19 @@ def get_time_from_model(start_location_id, end_location_id, time_of_day):
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        return data.get("hours_taken")
+        print(f"API Response: {data}")  # Print the full response for debugging
+        
+        # Check if 'routes' key is present and extract the 'hours_taken' from it
+        if 'routes' in data and len(data['routes']) > 0:
+            return data['routes'][0].get('hours_taken')  # Get hours_taken from the first route
+        else:
+            print("No routes found in the API response")
+            return None
     else:
         print(f"API call failed with status code: {response.status_code}")
     return None
+
+
 
 def calculate_accuracy(predicted_time, actual_time):
     if actual_time == 0:
@@ -62,6 +71,7 @@ def compare_time_taken(input_file):
 
         if start_location_id and end_location_id:
             predicted_time = get_time_from_model(start_location_id, end_location_id, time_of_day)
+            print(f"{predicted_time}")
             
             if predicted_time is not None:
                 accuracy = calculate_accuracy(predicted_time, actual_time)
@@ -90,5 +100,5 @@ def compare_time_taken(input_file):
     else:
         print("No valid rows to calculate overall accuracy.")
 
-input_file = 'cleanTrueData.csv'
+input_file = 'MainEvaluation.csv'
 compare_time_taken(input_file)
