@@ -28,7 +28,7 @@ def calculate_distance(start_lat, start_long, end_lat, end_long):
 def get_travel_time(start_lat, start_long, end_lat, end_long, departure_time):
     """Call the Google Maps API to get travel time between two points at a given time."""
     distance = calculate_distance(start_lat, start_long, end_lat, end_long)
-    if distance < 1:
+    if distance < 2:  # Avoid routes that are too short
         print(f"Skipping route due to short distance: {distance} km between {start_lat},{start_long} and {end_lat},{end_long}")
         return "Too close - Skipped"
 
@@ -53,20 +53,20 @@ def get_travel_time(start_lat, start_long, end_lat, end_long, departure_time):
         return "Error"
 
 def simulate_times(start_lat, start_long, end_lat, end_long):
-    """Simulate routes at different times of the day without considering the day."""
-    times_of_day = [(11, 0), (17, 0)]  # Morning, Noon, Evening
+    """Simulate routes at different times of the day."""
+    times_of_day = [(7, 0), (12, 0), (18, 0)]  # Morning, Noon, Evening
 
     results = {}
     for hour, minute in times_of_day:
-        departure_time = get_unix_timestamp(0, hour, minute)  # Use Monday as base
+        departure_time = get_unix_timestamp(0, hour, minute)  # Use Monday as the base day
         duration = get_travel_time(start_lat, start_long, end_lat, end_long, departure_time)
         results[f"{hour}:{minute}"] = duration
         print(f"Time {hour}:{minute}: {duration}")
     
     return results
 
-def main(input_csv, output_csv, max_routes=200):
-    """Process the routes and limit output to 200 diverse routes."""
+def main(input_csv, output_csv, max_routes=200, min_distance_km=5):
+    """Process the routes and limit output to 200 diverse routes with a minimum distance."""
     route_table = set()
     route_id = 1
     valid_routes_count = 0
@@ -88,6 +88,10 @@ def main(input_csv, output_csv, max_routes=200):
 
                 # Skip identical start and end points
                 if start_lat == end_lat and start_long == end_long:
+                    continue
+
+                # Ensure routes are at least a certain minimum distance apart (e.g., 5 km)
+                if calculate_distance(start_lat, start_long, end_lat, end_long) < min_distance_km:
                     continue
 
                 route_key = (start_lat, start_long, end_lat, end_long)
@@ -119,6 +123,6 @@ def main(input_csv, output_csv, max_routes=200):
                         return
 
 if __name__ == '__main__':
-    input_csv = 'cleanTrueData.csv'
-    output_csv = 'trueData_no_days.csv'
+    input_csv = '../data/vic/ScatsOctober2006.csv'
+    output_csv = 'NewEvaluation.csv'
     main(input_csv, output_csv)
