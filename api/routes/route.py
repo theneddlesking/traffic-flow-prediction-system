@@ -50,7 +50,8 @@ async def get_route(
 
     if any(route is None for route in routes):
         return {
-            "error": "An invalid route was generated. This is likely because the server is not fully loaded. Please wait a few moments and try again."
+            "error": "An invalid route was generated. This is likely because the server is not fully loaded. Please restart the \
+            server and wait a few moments before making a request."
         }
 
     return {"routes": [route.as_json() for route in routes]}
