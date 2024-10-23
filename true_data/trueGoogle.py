@@ -55,7 +55,7 @@ def get_travel_time(start_lat, start_long, end_lat, end_long, departure_time):
 
 def simulate_times(start_lat, start_long, end_lat, end_long):
     """Simulate routes at different times of the day."""
-    times_of_day = [(11, 0), (15, 0)]  # Morning, Noon, Evening
+    times_of_day = [(11, 0), (17, 0)]  # Morning, Noon, Evening
 
     results = {}
     for hour, minute in times_of_day:
