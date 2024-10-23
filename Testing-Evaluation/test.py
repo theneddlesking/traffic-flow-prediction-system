@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 import sqlite3
 
-db_path = "C:/Users/Josh/Documents/GitHub/traffic-flow-prediction-system/db/site.db"
+db_path = "site.db"
 
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
@@ -28,13 +28,11 @@ def get_time_from_model(start_location_id, end_location_id, time_of_day):
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        return data.get("routes", [])[0].get("hours_taken", None)
+        print(f"API Response Data: {data}")  # Debugging print
+        return data.get("hours_taken")
+    else:
+        print(f"API call failed with status code: {response.status_code}")
     return None
-
-def get_location_id(lat, long):
-    cursor.execute("SELECT location_id FROM locations WHERE lat = ? AND long = ?", (lat, long))
-    result = cursor.fetchone()
-    return result[0] if result else None
 
 def calculate_accuracy(predicted_time, actual_time):
     if actual_time == 0:
@@ -87,3 +85,4 @@ def compare_time_taken(input_file):
 #test_api_call(43, 71, '12:00') #testing
 
 input_file = 'cleanTrueData.csv'
+compare_time_taken(input_file)
