@@ -19,6 +19,15 @@ class Route:
         if not isinstance(other, Route):
             return NotImplemented
 
-        return (
-            self.waypoints == other.waypoints and self.hours_taken == other.hours_taken
-        )
+        # check if scats match
+        self_scats = set()
+
+        for point in self.waypoints:
+            self_scats.add(point.site_number)
+
+        other_scats = set()
+
+        for point in other.waypoints:
+            other_scats.add(point.site_number)
+
+        return self_scats == other_scats
