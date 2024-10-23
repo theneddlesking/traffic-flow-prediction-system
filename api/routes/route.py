@@ -23,7 +23,7 @@ async def get_route(
     """Get route"""
     # TODO add some caching logic
 
-    astar_router = AStarRouter(MFDTimeEstimator(BasicMFD(alpha=1, beta=0.3)))
+    astar_router = AStarRouter(MFDTimeEstimator(BasicMFD(alpha=0.8, beta=0.3)))
 
     locations = default_cache.site_controller.get_locations()
 
@@ -46,6 +46,11 @@ async def get_route(
     if len(routes) == 0:
         return {
             "error": "No path found. Could be because the start or end location is invalid."
+        }
+
+    if any(route is None for route in routes):
+        return {
+            "error": "An invalid route was generated. This is likely because the server is not fully loaded. Please wait a few moments and try again."
         }
 
     return {"routes": [route.as_json() for route in routes]}
