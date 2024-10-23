@@ -1,11 +1,13 @@
-import pandas as pd
 from data_loader import DataLoader
-from db.sqlite_db import DBModel
+from db.sqlite_db import DBModel, SQLiteDB
 from processing_step import ProcessingSteps
 
 
 class SiteModel(DBModel):
     """SiteModel class"""
+
+    def __init__(self, db: SQLiteDB):
+        super().__init__(db, "locations")
 
     def get_locations(self):
         """Get all locations."""
