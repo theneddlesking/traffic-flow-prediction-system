@@ -9,5 +9,5 @@ def filter_monday(input_file, output_file):
     print(f"Filtered data saved to {output_file}")
 
 input_file = 'cleanTrueData.csv'
-output_file = 'cleanTrueData_Monday.csv'
+output_file = 'EvaluationData.csv'
 filter_monday(input_file, output_file)

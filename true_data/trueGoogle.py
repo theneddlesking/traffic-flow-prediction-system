@@ -20,15 +20,15 @@ def get_unix_timestamp(day_of_week, hour, minute=0):
     return int(time.mktime(target_date.timetuple()))
 
 def calculate_distance(start_lat, start_long, end_lat, end_long):
+    """Calculate the distance between two sets of coordinates."""
     start_point = (float(start_lat), float(start_long))
     end_point = (float(end_lat), float(end_long))
     return geodesic(start_point, end_point).kilometers
 
-
 def get_travel_time(start_lat, start_long, end_lat, end_long, departure_time):
-
+    """Call the Google Maps API to get travel time between two points at a given time."""
     distance = calculate_distance(start_lat, start_long, end_lat, end_long)
-    if distance < 0.1:
+    if distance < 1:
         print(f"Skipping route due to short distance: {distance} km between {start_lat},{start_long} and {end_lat},{end_long}")
         return "Too close - Skipped"
 
@@ -52,29 +52,29 @@ def get_travel_time(start_lat, start_long, end_lat, end_long, departure_time):
         print(f"Error: {response.status_code}")
         return "Error"
 
-def simulate_times_and_days(start_lat, start_long, end_lat, end_long):
-    times_of_day = [(7, 0), (12, 0), (18, 0)]
-    days_of_week = {'Monday': 0, 'Friday': 4, 'Saturday': 5}
+def simulate_times(start_lat, start_long, end_lat, end_long):
+    """Simulate routes at different times of the day without considering the day."""
+    times_of_day = [(11, 0), (17, 0)]  # Morning, Noon, Evening
 
     results = {}
-    for day_name, day_num in days_of_week.items():
-        results[day_name] = {}
-        for hour, minute in times_of_day:
-            departure_time = get_unix_timestamp(day_num, hour, minute)
-            duration = get_travel_time(start_lat, start_long, end_lat, end_long, departure_time)
-            results[day_name][f"{hour}:{minute}"] = duration
-            print(f"{day_name} at {hour}:{minute}: {duration}")
+    for hour, minute in times_of_day:
+        departure_time = get_unix_timestamp(0, hour, minute)  # Use Monday as base
+        duration = get_travel_time(start_lat, start_long, end_lat, end_long, departure_time)
+        results[f"{hour}:{minute}"] = duration
+        print(f"Time {hour}:{minute}: {duration}")
     
     return results
 
-def main(input_csv, output_csv):
+def main(input_csv, output_csv, max_routes=200):
+    """Process the routes and limit output to 200 diverse routes."""
     route_table = set()
     route_id = 1
+    valid_routes_count = 0
 
     with open(input_csv, 'r') as infile, open(output_csv, 'w', newline='') as outfile:
         reader = csv.DictReader(infile)
         rows = list(reader)
-        fieldnames = ['Route_ID', 'START_LAT', 'START_LONG', 'END_LAT', 'END_LONG', 'Day', 'Time', 'Time_Taken']
+        fieldnames = ['Route_ID', 'START_LAT', 'START_LONG', 'END_LAT', 'END_LONG', 'Time', 'Time_Taken']
         writer = csv.DictWriter(outfile, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -90,7 +90,6 @@ def main(input_csv, output_csv):
                 if start_lat == end_lat and start_long == end_long:
                     continue
 
-                # Check if this route already exists in the route_table
                 route_key = (start_lat, start_long, end_lat, end_long)
                 if route_key in route_table:
                     continue  # Skip if route already exists
@@ -98,24 +97,28 @@ def main(input_csv, output_csv):
                 # Add the new route to the route_table
                 route_table.add(route_key)
 
-                results = simulate_times_and_days(start_lat, start_long, end_lat, end_long)
+                results = simulate_times(start_lat, start_long, end_lat, end_long)
 
-                for day, times in results.items():
-                    for time_of_day, duration in times.items():
+                for time_of_day, duration in results.items():
+                    if duration not in ["Error", "Too close - Skipped"]:  # Filter out errors and skipped routes
                         writer.writerow({
                             'Route_ID': route_id,
                             'START_LAT': start_lat,
                             'START_LONG': start_long,
                             'END_LAT': end_lat,
                             'END_LONG': end_long,
-                            'Day': day,
                             'Time': time_of_day,
                             'Time_Taken': duration
                         })
                         route_id += 1
+                        valid_routes_count += 1
 
+                    # Stop when 200 valid routes have been written
+                    if valid_routes_count >= max_routes:
+                        print(f"Reached the maximum limit of {max_routes} routes.")
+                        return
 
 if __name__ == '__main__':
-    input_csv = '../data/vic/ScatsOctober2006.csv'
-    output_csv = 'trueData.csv'
+    input_csv = 'cleanTrueData.csv'
+    output_csv = 'trueData_no_days.csv'
     main(input_csv, output_csv)
