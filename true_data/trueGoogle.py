@@ -66,32 +66,31 @@ def simulate_times(start_lat, start_long, end_lat, end_long):
     return results
 
 def main(input_csv, output_csv, max_routes=200):
-    """Process the routes and limit output to 200 diverse routes, prioritizing longer routes."""
+    """Process the routes and limit output to 200 diverse and long routes."""
     route_table = set()
+    start_lat_long_used = set()  # To track used start locations
     route_id = 1
     valid_routes_count = 0
-    start_used = set()
 
     with open(input_csv, 'r') as infile, open(output_csv, 'w', newline='') as outfile:
         reader = csv.DictReader(infile)
         rows = list(reader)
-        fieldnames = ['Route_ID', 'START_LAT', 'START_LONG', 'END_LAT', 'END_LONG', 'Time', 'Time_Taken', 'Distance']
+        fieldnames = ['Route_ID', 'START_LAT', 'START_LONG', 'END_LAT', 'END_LONG', 'Time', 'Time_Taken']
         writer = csv.DictWriter(outfile, fieldnames=fieldnames)
         writer.writeheader()
 
-        # Sort routes by distance (longer routes first)
-        sorted_routes = sorted(rows, key=lambda row: calculate_distance(row['NB_LATITUDE'], row['NB_LONGITUDE'], row['NB_LATITUDE'], row['NB_LONGITUDE']), reverse=True)
+        # Sort rows by distance (longer routes first)
+        rows.sort(key=lambda row: calculate_distance(row['NB_LATITUDE'], row['NB_LONGITUDE'], row['NB_LATITUDE'], row['NB_LONGITUDE']), reverse=True)
 
-        for start_row in sorted_routes:
+        for start_row in rows:
             start_lat = start_row['NB_LATITUDE']
             start_long = start_row['NB_LONGITUDE']
 
-            # Ensure we do not reuse the same start lat/long
-            if (start_lat, start_long) in start_used:
+            # Skip if the start location has already been used
+            if (start_lat, start_long) in start_lat_long_used:
                 continue
-            start_used.add((start_lat, start_long))
 
-            for end_row in sorted_routes:
+            for end_row in rows:
                 end_lat = end_row['NB_LATITUDE']
                 end_long = end_row['NB_LONGITUDE']
 
@@ -105,8 +104,8 @@ def main(input_csv, output_csv, max_routes=200):
 
                 # Add the new route to the route_table
                 route_table.add(route_key)
+                start_lat_long_used.add((start_lat, start_long))  # Mark this start location as used
 
-                distance = calculate_distance(start_lat, start_long, end_lat, end_long)
                 results = simulate_times(start_lat, start_long, end_lat, end_long)
 
                 for time_of_day, duration in results.items():
@@ -118,8 +117,7 @@ def main(input_csv, output_csv, max_routes=200):
                             'END_LAT': end_lat,
                             'END_LONG': end_long,
                             'Time': time_of_day,
-                            'Time_Taken': duration,
-                            'Distance': distance
+                            'Time_Taken': duration
                         })
                         route_id += 1
                         valid_routes_count += 1
