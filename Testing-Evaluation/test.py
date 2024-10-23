@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 import sqlite3
 
-db_path = "db/site.db"
+db_path = "C:/Users/Josh/Documents/GitHub/traffic-flow-prediction-system/db/site.db"
 
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
@@ -73,7 +73,7 @@ def compare_time_taken(input_file):
                 results.append((start_lat, start_long, end_lat, end_long, actual_time, predicted_time, accuracy))
 
     results_df = pd.DataFrame(results, columns=['START_LAT', 'START_LONG', 'END_LAT', 'END_LONG', 'Actual_Time_Taken', 'Predicted_Time_Taken', 'Accuracy'])
-    results_df.to_csv('comparison_results.csv', index=False)
+    results_df.to_csv('results.csv', index=False)
 
     if valid_rows > 0:
         overall_accuracy = total_accuracy / valid_rows
@@ -84,6 +84,6 @@ def compare_time_taken(input_file):
     else:
         print("No valid rows to calculate overall accuracy.")
 
-test_api_call(43, 71, '12:00') #testing
+#test_api_call(43, 71, '12:00') #testing
 
-input_file = '../true_data/cleanTrueData.csv'
+input_file = 'cleanTrueData.csv'
