@@ -1,6 +1,4 @@
 import pandas as pd
-from sklearn.discriminant_analysis import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
 from data_loader import DataLoader
 from db.sqlite_db import DBModel, SQLiteDB
 from model.nn_model import Model
@@ -14,12 +12,11 @@ class FlowPredictorModel(DBModel):
     def __init__(
         self, db: SQLiteDB, model: Model, real_time_sources: list[RealTimeSource]
     ):
-        super().__init__(db)
-
-        self.real_time_sources = real_time_sources
         # ! Assumes that model_name is passed in safely, NOT USER FACING
         # TODO is there a better way to handle this?
-        self.table_name = f"{model.name}_predictions"
+        super().__init__(db, f"{model.name}_predictions")
+
+        self.real_time_sources = real_time_sources
 
         self.model = model
 

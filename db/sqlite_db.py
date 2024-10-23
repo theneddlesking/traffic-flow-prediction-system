@@ -47,6 +47,12 @@ class SQLiteDB:
         for model in self.models:
             model.init_model()
 
+    def init_if_not_exist(self):
+        """Initialise the tables if they don't already exist."""
+        # initialise models
+        for model in self.models:
+            model.init_if_not_exist()
+
     def copy_table(self, table_name: str, new_table_name: str):
         """Copy a table to a new table."""
         query = f"CREATE TABLE {new_table_name} AS SELECT * FROM {table_name}"
@@ -73,9 +79,10 @@ class SQLiteDB:
 class DBModel:
     """A model for the database to interact with a specific table or set of tables."""
 
-    def __init__(self, db: "SQLiteDB"):
+    def __init__(self, db: "SQLiteDB", table_name: str):
         self.db = db
         self.db.add_model(self)
+        self.table_name = table_name
 
     def rebuild_model(self):
         """Rebuild the model by dropping all tables and recreating them."""
@@ -84,3 +91,22 @@ class DBModel:
     def init_model(self):
         """Initialise the model with some default data."""
         raise NotImplementedError("This method should be implemented in a subclass.")
+
+    def check_table_exists(self):
+        """Check if a table exists."""
+        table_exists_query = f"SELECT name FROM sqlite_master WHERE type='table' AND name='{self.table_name}'"
+
+        at_least_one_entry_query = f"SELECT COUNT(*) FROM {self.table_name}"
+
+        exists = bool(self.db.execute_query(table_exists_query)[0][0])
+
+        count = int(self.db.execute_query(at_least_one_entry_query)[0][0])
+
+        at_least_one = count > 0
+
+        return exists and at_least_one
+
+    def init_if_not_exist(self):
+        """Initialise the model if it doesn't already exist."""
+        if not self.check_table_exists():
+            self.init_model()
