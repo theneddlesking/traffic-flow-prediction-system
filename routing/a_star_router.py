@@ -99,7 +99,7 @@ class AStarRouter(Router):
         ) -> bool:
             """Check when to stop the search for best routes."""
             # TODO implement break_condition that considers the route itself
-            return number_of_routes >= 3 or search_attempts >= 10
+            return number_of_routes >= 5 or search_attempts >= 10
 
         search_attempts = 0
 
@@ -119,6 +119,9 @@ class AStarRouter(Router):
                 start, end, time_graph, network, model
             )
 
+            # TODO check route instead of exact match, check if they are substantially different
+            # check this by comparing the SCAT site numbers, eg. don't just run around the intersection
+
             # already found the same route or no more routes to find
             if next_best_route is None or next_best_route in best_routes:
                 break
@@ -130,7 +133,7 @@ class AStarRouter(Router):
         # TODO this could be simplified somehow, but it should be pretty fast
         # because there won't be many points in the phony network
 
-        actual_routes = []
+        actual_routes: list[Route] = []
 
         for route in best_routes:
 
@@ -147,6 +150,9 @@ class AStarRouter(Router):
             )
 
             actual_routes.append(actual_route)
+
+        # sort just in case
+        actual_routes.sort(key=lambda route: route.hours_taken)
 
         return actual_routes
 

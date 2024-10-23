@@ -3,7 +3,7 @@ import { FiArrowLeftCircle, FiArrowRightCircle } from "react-icons/fi";
 import { Menu, ProSidebar, SidebarContent, SidebarHeader } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
 import "./MapSidebar.css";
-import type { Location, RoutingPoint } from './types';
+import type { Location, Route, RoutingPoint } from './types';
 
 type MapSidebarProps = {
     startPoint: Location | null;
@@ -19,9 +19,12 @@ type MapSidebarProps = {
     waypoints: RoutingPoint[];
     loading: boolean;
     model: string;
+    routes: Route[];
+    route : Route | null;
+    setRoute: (route: Route | null) => void;
 };
 
-function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, setModel, model, allModels, locations, hoursTaken, waypoints, loading }: MapSidebarProps) {
+function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, setModel, model, allModels, locations, hoursTaken, waypoints, loading, setRoute, routes, route }: MapSidebarProps) {
     const [inputValues, setInputValues] = useState({ start: '', end: '' });
     const [menuCollapse, setMenuCollapse] = useState(false);
 
@@ -59,6 +62,10 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
     const waypointsPerScat = waypoints.filter((waypoint, index, self) =>
         index === self.findIndex(t => t.site_number === waypoint.site_number)
     );
+
+    const getRouteStr = (index: number) => {
+        return "Route " + (index + 1).toString();
+    }
 
     return (
         <div id="header">
@@ -103,6 +110,24 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
                                     <option key={model} value={model}>{model}</option>
                                 ))}
                             </select>
+
+                            {
+                                route && (
+                                    <>
+                                        <label>Route</label>
+                                        <select value={routes.findIndex(r => r === route)} onChange={(e) => {
+                                            const int = parseInt(e.target.value);
+                                            setRoute(routes[int]);
+                                        }}>
+                                            {routes.map((_, index) => (
+                                                <option key={index} value={index}>{getRouteStr(index)}</option>
+                                            ))}
+                                        </select>   
+                                    </>
+                                )
+                            }
+                        
+                    
                         </div>
                         <datalist id="locations">
                             {locations.map(location => (

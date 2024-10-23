@@ -2,7 +2,10 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import type { Connection, Intersection, Location } from "./types";
 
-const useFetchData = (setError: (error: string | null) => void) => {
+const useFetchData = (
+  setError: (error: string | null) => void,
+  skipLoadingScreen: boolean
+) => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [intersections, setIntersections] = useState<Intersection[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -10,6 +13,12 @@ const useFetchData = (setError: (error: string | null) => void) => {
 
   useEffect(() => {
     const fetchData = async () => {
+      // first wait for the server to be fully loaded
+
+      if (!skipLoadingScreen) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+
       try {
         const locationResponse = await axios.get<{ locations: Location[] }>(
           "http://127.0.0.1:8000/site/locations"
