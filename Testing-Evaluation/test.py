@@ -18,7 +18,6 @@ def test_api_call(start_location_id, end_location_id, time_of_day):
         print(f"API call failed with status code: {response.status_code}")
 
 
-
 def get_location_id(lat, long):
     cursor.execute("SELECT location_id FROM locations WHERE latitude = ? AND longitude = ?", (lat, long))
     result = cursor.fetchone()
@@ -46,7 +45,9 @@ def compare_time_taken(input_file):
     df = pd.read_csv(input_file)
 
     results = []
-
+    
+    total_accuracy = 0
+    valid_rows = 0 
     # Iterate over each row in the truedataCSV and compare them against basic_predictions
 
     for index, row in df.iterrows():
@@ -56,7 +57,32 @@ def compare_time_taken(input_file):
         end_long = row['END_LONG']
         actual_time = row['Time_Taken']
         time_of_day = row['Time']
-    return
+
+        start_location_id = get_location_id(start_lat, start_long)
+        end_location_id = get_location_id(end_lat, end_long)
+        
+        if start_location_id and end_location_id:
+            predicted_time = get_time_from_model(start_location_id, end_location_id, time_of_day)
+            
+            if predicted_time is not None:
+                accuracy = calculate_accuracy(predicted_time, actual_time)
+
+                total_accuracy += accuracy
+                valid_rows += 1
+
+                results.append((start_lat, start_long, end_lat, end_long, actual_time, predicted_time, accuracy))
+
+    results_df = pd.DataFrame(results, columns=['START_LAT', 'START_LONG', 'END_LAT', 'END_LONG', 'Actual_Time_Taken', 'Predicted_Time_Taken', 'Accuracy'])
+    results_df.to_csv('comparison_results.csv', index=False)
+
+    if valid_rows > 0:
+        overall_accuracy = total_accuracy / valid_rows
+        accuracy_file = 'model_accuracy.txt'
+        with open(accuracy_file, 'w') as f:
+            f.write(f"Overall model accuracy: {overall_accuracy:.2f}%\n")
+        print(f"Overall accuracy saved to {accuracy_file}")
+    else:
+        print("No valid rows to calculate overall accuracy.")
 
 test_api_call(43, 71, '12:00') #testing
 
