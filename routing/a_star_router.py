@@ -99,7 +99,7 @@ class AStarRouter(Router):
         ) -> bool:
             """Check when to stop the search for best routes."""
             # TODO implement break_condition that considers the route itself
-            return number_of_routes >= 3 or search_attempts >= 10
+            return number_of_routes >= 5 or search_attempts >= 10
 
         search_attempts = 0
 
@@ -133,7 +133,7 @@ class AStarRouter(Router):
         # TODO this could be simplified somehow, but it should be pretty fast
         # because there won't be many points in the phony network
 
-        actual_routes = []
+        actual_routes: list[Route] = []
 
         for route in best_routes:
 
@@ -150,6 +150,9 @@ class AStarRouter(Router):
             )
 
             actual_routes.append(actual_route)
+
+        # sort just in case
+        actual_routes.sort(key=lambda route: route.hours_taken)
 
         return actual_routes
 
