@@ -40,6 +40,8 @@ export type Connection = {
 
 export type RouteDirection = {
   instruction: string;
+  distance: number;
+  is_straight: boolean;
 };
 
 export type Route = {
