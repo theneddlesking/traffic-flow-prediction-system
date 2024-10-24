@@ -24,7 +24,7 @@ type MapSidebarProps = {
     setRoute: (route: Route | null) => void;
 };
 
-function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, setModel, model, allModels, locations, hoursTaken, waypoints, loading, setRoute, routes, route }: MapSidebarProps) {
+function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDay, setTimeOfDay, setModel, model, allModels, locations, hoursTaken, loading, setRoute, routes, route }: MapSidebarProps) {
     const [inputValues, setInputValues] = useState({ start: '', end: '' });
     const [menuCollapse, setMenuCollapse] = useState(false);
 
@@ -58,10 +58,6 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
         const hours = Math.floor(inMinutes / 60);
         return `${hours} ${hours === 1 ? "hr" : "hrs"} ${minutes}min`;
     };
-
-    const waypointsPerScat = waypoints.filter((waypoint, index, self) =>
-        index === self.findIndex(t => t.site_number === waypoint.site_number)
-    );
 
     const getRouteStr = (index: number) => {
         return "Route " + (index + 1).toString();
@@ -140,16 +136,14 @@ function MapSidebar({ startPoint, endPoint, setStartPoint, setEndPoint, timeOfDa
                             <div className="spinner"></div>
                         </div>
                     )}
-                    {startPoint && endPoint && !loading && (
+                    {startPoint && endPoint && !loading && route && (
                         <Menu>
                             <p className="time">{getTimeStringFromHours(hoursTaken)}</p>
                             <h2>Directions</h2>
-                            {waypointsPerScat.map(waypoint => (
-                                <div key={waypoint.location_id}>
-                                    <p className="waypoint">{waypoint.site_number} - {waypoint.street_name} / {waypoint.other_street_name}</p>
-                                    {waypointsPerScat[waypointsPerScat.length - 1] !== waypoint && (
-                                        <div className="vertical-line">|</div>
-                                    )}
+                 
+                            {route.directions.map((direction) => (
+                                <div key={direction.instruction}>
+                                    <p className="waypoint">{direction.instruction}</p>
                                 </div>
                             ))}
                         </Menu>

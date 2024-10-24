@@ -16,10 +16,20 @@ class Route:
 
     def as_json(self) -> dict:
         """Convert the Route to a JSON serializable dictionary."""
+
+        # convert to object as { "instruction " : Direction}
+
         return {
             "waypoints": [point.as_json() for point in self.waypoints],
             "hours_taken": self.hours_taken,
-            "directions": [direction.as_json() for direction in self.directions],
+            "directions": [
+                (
+                    direction.as_json(self.directions[i + 1])
+                    if i + 1 < len(self.directions)
+                    else direction.as_json(None)
+                )
+                for i, direction in enumerate(self.directions)
+            ],
         }
 
     def __eq__(self, other: object) -> bool:
@@ -45,13 +55,21 @@ class Route:
 
         def get_sequence_of_turns(directions: list[RouteDirection]) -> list[str]:
             """Get a sequence of turns from a list of RouteDirections."""
-            no_straights = [
-                direction for direction in directions if not direction.is_straight
+            turns = [
+                direction.get_turn()
+                for direction in directions
+                if not direction.is_straight
             ]
 
-            return [direction.get_direction() for direction in no_straights]
+            return turns
 
         self_turns = get_sequence_of_turns(self.directions)
         other_turns = get_sequence_of_turns(other.directions)
 
         return self_turns == other_turns
+
+    def __str__(self) -> str:
+        return f"Route: {self.waypoints}, {self.hours_taken} hours"
+
+    def __repr__(self) -> str:
+        return self.__str__()

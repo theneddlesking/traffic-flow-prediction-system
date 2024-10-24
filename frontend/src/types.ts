@@ -38,7 +38,14 @@ export type Connection = {
   length: number;
 };
 
+export type RouteDirection = {
+  instruction: string;
+  distance: number;
+  is_straight: boolean;
+};
+
 export type Route = {
   waypoints: RoutingPoint[];
   hours_taken: number;
+  directions: RouteDirection[];
 };
