@@ -1,4 +1,4 @@
-from keras.layers import Dense, Dropout, Activation, LSTM, GRU, Input
+from keras.layers import Dense, Dropout, LSTM, GRU, Input, Concatenate
 from keras.models import Sequential
 from tensorflow.keras import layers, models, regularizers
 
@@ -67,6 +67,34 @@ class ModelBuilder:
         # add output layer
         model.add(Dense(units[-1], activation="sigmoid"))
 
+        return model
+
+    @staticmethod
+    def get_gru_with_heuristics(units: list, heuristic_input_dim: int = 0):
+        """GRU Model with optional heuristic inputs."""
+        
+        # input for time series data (traffic flow)
+        traffic_flow_input = Input(shape=(units[0], 1), name="traffic_flow_input")
+
+        # layers for traffic flow
+        x = GRU(units[1], return_sequences=True)(traffic_flow_input)
+        for unit in units[2:-1]:
+            x = GRU(unit)(x)
+            x = Dropout(0.2)(x)
+        
+        # check for heuristic features, then create a separate input and concatenate it
+        if heuristic_input_dim > 0:
+            heuristic_input = Input(shape=(heuristic_input_dim,), name="heuristic_input")
+            x = Concatenate()([x, heuristic_input])
+
+        output = Dense(units[-1], activation="sigmoid")(x)
+        
+        # build model based on inputs
+        if heuristic_input_dim > 0:
+            model = Sequential([traffic_flow_input, heuristic_input], output)
+        else:
+            model = Sequential(traffic_flow_input, output)
+        
         return model
 
     @staticmethod
