@@ -98,8 +98,8 @@ class AStarRouter(Router):
             search_attempts: int,
         ) -> bool:
             """Check when to stop the search for best routes."""
-            # TODO implement break_condition that considers the route itself
-            return number_of_routes >= 4 or search_attempts >= 10
+            # NOTE: you could have a smarter break condition
+            return number_of_routes >= 5 or search_attempts >= 10
 
         search_attempts = 0
 
@@ -123,6 +123,8 @@ class AStarRouter(Router):
             # check this by comparing the SCAT site numbers, eg. don't just run around the intersection
 
             # already found the same route or no more routes to find
+            print("checking next best route")
+            print(next_best_route)
             if next_best_route is None or next_best_route in best_routes:
                 break
 
@@ -151,10 +153,25 @@ class AStarRouter(Router):
 
             actual_routes.append(actual_route)
 
-        # sort just in case
-        actual_routes.sort(key=lambda route: route.hours_taken)
+        # technically the phony routes could yield the same route even if they were different on the original network
+        def remove_duplicate_routes(routes: list[Route]) -> list[Route]:
+            """Remove duplicate routes."""
+            unique_routes = []
 
-        return actual_routes
+            for route in routes:
+                if route not in unique_routes:
+                    unique_routes.append(route)
+
+            return unique_routes
+
+        # remove duplicates
+        # NOTE: hacky and slow, could be improved
+        no_duplicates = remove_duplicate_routes(actual_routes)
+
+        # sort them so that the fastest route is first
+        no_duplicates.sort(key=lambda route: route.hours_taken)
+
+        return no_duplicates
 
     def penalise_route(
         self, route: Route, penalty_hours: int, time_graph: TimeGraph

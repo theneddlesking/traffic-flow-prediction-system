@@ -74,3 +74,7 @@ class RouteDirection:
             "distance": self.get_distance_str(),
             "is_straight": self.is_straight,
         }
+
+    def get_turn(self) -> str:
+        """Get the simplified turn string of the route."""
+        return f"{self.point_a.street_name} to {self.point_b.street_name}"
