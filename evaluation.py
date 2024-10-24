@@ -15,7 +15,7 @@ def visualise_evaluations(model_name: str):
     # scatter plot of expected_output vs. output
     plt.figure(figsize=(8, 6))
     sns.scatterplot(x="expected_output", y="output", data=df)
-    plt.title("Expected Output vs. Actual Output")
+    plt.title(f"Expected Output vs. Actual Output for {model_name}")
     plt.xlabel("Expected Output")
     plt.ylabel("Actual Output")
     plt.savefig(f"./results/visualisations/{model_name}_expected_vs_actual_output.png")
@@ -23,8 +23,10 @@ def visualise_evaluations(model_name: str):
     # box plot of differences
     plt.figure(figsize=(8, 6))
     sns.boxplot(y="diff", data=df)
-    plt.title("Distribution of Differences (diff) between Expected and Actual Outputs")
-    plt.ylabel("Difference (diff)")
+    plt.title(
+        f"Distribution of Error between Expected and Actual Outputs for {model_name}"
+    )
+    plt.ylabel("Error (Expected Output - Actual Output)")
     plt.savefig(f"./results/visualisations/{model_name}_diff_distribution.png")
 
 
