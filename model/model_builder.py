@@ -71,26 +71,22 @@ class ModelBuilder:
 
     @staticmethod
     def get_saes(units: list):
-        # Define the encoder
         def build_encoder(input_dim, hidden_units):
             encoder_input = layers.Input(shape=(input_dim,))
             x = encoder_input
-            for units in hidden_units[:-1]:  # Skip the last layer (latent representation)
+            for units in hidden_units[:-1]:
                 x = layers.Dense(units, activation='relu', activity_regularizer=regularizers.l1(10e-5))(x)
-            encoded_output = layers.Dense(hidden_units[-1], activation='relu')(x)  # Latent representation
+            encoded_output = layers.Dense(hidden_units[-1], activation='relu')(x)
             return models.Model(encoder_input, encoded_output, name="encoder")
 
-        # Define the decoder
         def build_decoder(hidden_units):
-            decoder_input = layers.Input(shape=(hidden_units[-1],))  # Latent representation size
+            decoder_input = layers.Input(shape=(hidden_units[-1],))
             x = decoder_input
-            for units in hidden_units[::-1][1:]:  # Reverse hidden units but skip the last unit
+            for units in hidden_units[::-1][1:]:
                 x = layers.Dense(units, activation='relu')(x)
-            # The output dimension should be 1, predicting the flow for the next 15 minutes
             decoder_output = layers.Dense(1, activation='linear')(x)
             return models.Model(decoder_input, decoder_output, name="decoder")
 
-        # Build the full Stacked Autoencoder model
         def build_autoencoder(input_dim, hidden_units):
             encoder = build_encoder(input_dim, hidden_units)
             decoder = build_decoder(hidden_units)
@@ -104,8 +100,7 @@ class ModelBuilder:
 
             return autoencoder, encoder, decoder
 
-        input_dim = units[0]  # The input dimension (lags, which is 12 in your case)
-        hidden_units = units[1:]  # The hidden units for encoder and decoder
+        input_dim = units[0]
+        hidden_units = units[1:]
 
-        # Return the full autoencoder
         return build_autoencoder(input_dim, hidden_units)[0]
