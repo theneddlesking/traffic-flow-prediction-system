@@ -99,7 +99,7 @@ class AStarRouter(Router):
         ) -> bool:
             """Check when to stop the search for best routes."""
             # TODO implement break_condition that considers the route itself
-            return number_of_routes >= 5 or search_attempts >= 10
+            return number_of_routes >= 4 or search_attempts >= 10
 
         search_attempts = 0
 
