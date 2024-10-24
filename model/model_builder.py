@@ -1,5 +1,6 @@
 from keras.layers import Dense, Dropout, Activation, LSTM, GRU, Input
 from keras.models import Sequential
+from tensorflow.keras import layers, models, regularizers
 
 
 class ModelBuilder:
@@ -69,53 +70,42 @@ class ModelBuilder:
         return model
 
     @staticmethod
-    def _get_sae(inputs: int, hidden: int, output: int):
-        """SAE(Auto-Encoders)
-        Build SAE Model.
+    def get_saes(units: list):
+        # Define the encoder
+        def build_encoder(input_dim, hidden_units):
+            encoder_input = layers.Input(shape=(input_dim,))
+            x = encoder_input
+            for units in hidden_units[:-1]:  # Skip the last layer (latent representation)
+                x = layers.Dense(units, activation='relu', activity_regularizer=regularizers.l1(10e-5))(x)
+            encoded_output = layers.Dense(hidden_units[-1], activation='relu')(x)  # Latent representation
+            return models.Model(encoder_input, encoded_output, name="encoder")
 
-        # Arguments
-            inputs: Integer, number of input units.
-            hidden: Integer, number of hidden units.
-            output: Integer, number of output units.
-        # Returns
-            model: Model, nn model.
-        """
+        # Define the decoder
+        def build_decoder(hidden_units):
+            decoder_input = layers.Input(shape=(hidden_units[-1],))  # Latent representation size
+            x = decoder_input
+            for units in hidden_units[::-1][1:]:  # Reverse hidden units but skip the last unit
+                x = layers.Dense(units, activation='relu')(x)
+            # The output dimension should be 1, predicting the flow for the next 15 minutes
+            decoder_output = layers.Dense(1, activation='linear')(x)
+            return models.Model(decoder_input, decoder_output, name="decoder")
 
-        model = Sequential()
-        model.add(Dense(hidden, input_dim=inputs, name="hidden"))
-        model.add(Activation("sigmoid"))
-        model.add(Dropout(0.2))
-        model.add(Dense(output, activation="sigmoid"))
+        # Build the full Stacked Autoencoder model
+        def build_autoencoder(input_dim, hidden_units):
+            encoder = build_encoder(input_dim, hidden_units)
+            decoder = build_decoder(hidden_units)
 
-        return model
+            autoencoder_input = layers.Input(shape=(input_dim,))
+            encoded = encoder(autoencoder_input)
+            decoded = decoder(encoded)
 
-    # TODO implement a more conventional way of building SAEs
-    @staticmethod
-    def get_saes(layers: list):
-        """SAEs(Stacked Auto-Encoders)
-        Build SAEs Model.
+            autoencoder = models.Model(autoencoder_input, decoded, name="autoencoder")
+            autoencoder.compile(optimizer='adam', loss='mse')
 
-        # Arguments
-            layers: List(int), number of input, output and hidden units.
-        # Returns
-            models: List(Model), List of SAE and SAEs.
-        """
-        # TODO: allow for n number of layers
+            return autoencoder, encoder, decoder
 
-        sae1 = ModelBuilder._get_sae(layers[0], layers[1], layers[-1])
-        sae2 = ModelBuilder._get_sae(layers[1], layers[2], layers[-1])
-        sae3 = ModelBuilder._get_sae(layers[2], layers[3], layers[-1])
+        input_dim = units[0]  # The input dimension (lags, which is 12 in your case)
+        hidden_units = units[1:]  # The hidden units for encoder and decoder
 
-        saes = Sequential()
-        saes.add(Dense(layers[1], input_dim=layers[0], name="hidden1"))
-        saes.add(Activation("sigmoid"))
-        saes.add(Dense(layers[2], name="hidden2"))
-        saes.add(Activation("sigmoid"))
-        saes.add(Dense(layers[3], name="hidden3"))
-        saes.add(Activation("sigmoid"))
-        saes.add(Dropout(0.2))
-        saes.add(Dense(layers[4], activation="sigmoid"))
-
-        models = [sae1, sae2, sae3, saes]
-
-        return models
+        # Return the full autoencoder
+        return build_autoencoder(input_dim, hidden_units)[0]
