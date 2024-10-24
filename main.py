@@ -7,7 +7,7 @@ from model.model_trainer import ModelTrainer
 from model.nn_model import Model
 from model.model_builder import ModelBuilder
 from model.training_config import TrainingConfig
-from test import day_before, most_common_date
+from sources import day_before, most_common_date
 
 
 lstm_units = [12, 64, 64, 1]

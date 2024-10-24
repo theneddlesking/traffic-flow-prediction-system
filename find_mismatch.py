@@ -1,4 +1,4 @@
-from test import sources
+from sources import sources
 
 from cache import default_cache
 
