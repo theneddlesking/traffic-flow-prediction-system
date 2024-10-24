@@ -26,6 +26,10 @@ class TestEvaluation:
         """Evaluate the test."""
         raise NotImplementedError("Subclasses must implement this method.")
 
+    def convert_to_dict(self) -> dict:
+        """Convert the evaluation to a dictionary."""
+        raise NotImplementedError("Subclasses must implement this method.")
+
 
 class TravelTimeTestEvaluation(TestEvaluation):
     """The evaluation of a travel time test case."""
@@ -37,7 +41,9 @@ class TravelTimeTestEvaluation(TestEvaluation):
     ):
         super().__init__(expected_output, output)
 
-        self.accuracy, self.found_solution = self.evaluate(expected_output, output)
+        self.accuracy, self.diff, self.found_solution = self.evaluate(
+            expected_output, output
+        )
 
     def evaluate(
         self,
@@ -48,13 +54,13 @@ class TravelTimeTestEvaluation(TestEvaluation):
 
         # skip if no solution
         if output.hours_taken is None:
-            return None, False
+            return None, None, False
 
         hours_taken_diff = abs(expected_output.hours_taken - output.hours_taken)
 
         accuracy = 1 - hours_taken_diff / expected_output.hours_taken
 
-        return accuracy, True
+        return accuracy, hours_taken_diff, True
 
     def summarise(self) -> str:
         """Summarise the evaluation."""
@@ -63,3 +69,13 @@ class TravelTimeTestEvaluation(TestEvaluation):
             return "No solution found."
 
         return f"Accuracy: {self.accuracy:.2f}"
+
+    def convert_to_dict(self) -> dict:
+        """Convert the evaluation to a dictionary."""
+        return {
+            "expected_output": self.expected_output.hours_taken,
+            "output": self.output.hours_taken,
+            "accuracy": self.accuracy,
+            "found_solution": self.found_solution,
+            "diff": self.diff,
+        }

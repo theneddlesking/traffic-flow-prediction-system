@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import math
 import pandas as pd
@@ -5,7 +6,7 @@ from coordinate_offset import LAT_OFFSET, LONG_OFFSET
 from data_loader import DataLoader
 from processing_step import ProcessingSteps
 from testing.solution import TravelTimeTestCaseSolution
-from testing.test_case import TestCase, TravelTimeTestCase
+from testing.test_case import TravelTimeTestCase
 from testing.test_case_input import TravelTimeTestCaseInput
 from testing.test_result import TravelTimeTestEvaluation
 from testing.test_runner import TestRunner
@@ -75,11 +76,7 @@ data_loader = DataLoader(
 
 df = data_loader.pre_processed_df
 
-# hard code for now
-MODEL_NAME = "basic_lstm_model"
-
 # get all locations
-
 locations = default_cache.site_controller.get_locations()
 
 
@@ -100,60 +97,75 @@ def get_location_id_from_lat_long(lat: float, long: float) -> int:
     return None
 
 
-# iter rows
+def test_model(model_name: str, limit: int = None) -> None:
+    """Test the model."""
 
-limit = 100
+    # iter rows
 
-for index, row in df.iterrows():
-    # TODO remove this TEMPORARY
-    if index == limit:
-        break
+    if limit is None:
+        limit = len(df)
 
-    expected_output = TravelTimeTestCaseSolution(row["time_taken"])
+    for index, row in df.iterrows():
+        if index == limit:
+            break
 
-    start_location_id = get_location_id_from_lat_long(
-        float(row["start_lat"]), float(row["start_long"])
+        expected_output = TravelTimeTestCaseSolution(row["time_taken"])
+
+        start_location_id = get_location_id_from_lat_long(
+            float(row["start_lat"]), float(row["start_long"])
+        )
+        end_location_id = get_location_id_from_lat_long(
+            float(row["end_lat"]), float(row["end_long"])
+        )
+
+        # could be from one of the bad locations
+        if start_location_id is None or end_location_id is None:
+            continue
+
+        time_of_day = row["time"]
+
+        input_data = TravelTimeTestCaseInput(
+            start_location_id, end_location_id, time_of_day, model_name
+        )
+
+        # travel time test case
+        travel_time_test_case = TravelTimeTestCase(
+            f"Test case {index}", expected_output, input_data
+        )
+
+        test_runner.add_test_case(travel_time_test_case)
+
+    results: list[TravelTimeTestEvaluation] = asyncio.run(test_runner.run())
+    # results df
+
+    result_dicts = [result.convert_to_dict() for result in results]
+
+    results_df = pd.DataFrame(result_dicts)
+
+    results_df.to_csv(f"./results/evaluations/{model_name}_results.csv", index=False)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Test the model.")
+
+    parser.add_argument(
+        "model_name",
+        type=str,
+        help="The name of the model to test.",
     )
-    end_location_id = get_location_id_from_lat_long(
-        float(row["end_lat"]), float(row["end_long"])
+
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help="The number of rows to test.",
+        default=None,
     )
 
-    # could be from one of the bad locations
-    if start_location_id is None or end_location_id is None:
-        continue
+    args = parser.parse_args()
 
-    time_of_day = row["time"]
+    model_name = args.model_name
 
-    input_data = TravelTimeTestCaseInput(
-        start_location_id, end_location_id, time_of_day, MODEL_NAME
-    )
+    limit = args.limit
 
-    # travel time test case
-    travel_time_test_case = TravelTimeTestCase(
-        f"Test case {index}", expected_output, input_data
-    )
-
-    test_runner.add_test_case(travel_time_test_case)
-
-
-results: list[TravelTimeTestEvaluation] = asyncio.run(test_runner.run())
-
-for result in results:
-    print(result.summarise())
-
-# with found solution
-
-found_solutions = [result for result in results if result.found_solution]
-
-overall_accuracy = sum(result.accuracy for result in found_solutions) / len(
-    found_solutions
-)
-
-missing_solutions = len(results) - len(found_solutions)
-
-percentage_missing = missing_solutions / len(results) * 100
-
-print(f"Overall accuracy: {overall_accuracy * 100:.2f}%")
-print(
-    f"Percentage missing solutions: {percentage_missing:.2f}% Count {missing_solutions}"
-)
+    test_model(model_name, limit)
