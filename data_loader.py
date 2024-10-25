@@ -88,7 +88,7 @@ class DataLoader:
         return x_train.reshape(x_train.shape[0], x_train.shape[1])
 
     def create_train_test_split_from_df(
-        self, train_test_proportion: float, lags: int, heuristic_columns: list = None
+        self, train_test_proportion: float, lags: int
     ) -> ModelInputData:
         """
         Convert DataFrame to numpy
@@ -98,7 +98,6 @@ class DataLoader:
             train_test_proportion: float, proportion of data to use for training.
             target: string, target column.
             lags: integer, time lag.
-            heuristic_columns: list, list of columns to use as heuristics.
         # Returns
             x_train: ndarray.
             y_train: ndarray.
@@ -114,6 +113,7 @@ class DataLoader:
         # split df based on test train proportion but evenly per day
 
         periods_per_day = 96
+
         split = int(len(df) / periods_per_day * train_test_proportion) * periods_per_day
 
         # split df based on test train proportion
@@ -126,37 +126,27 @@ class DataLoader:
 
         print(f"vals shape: {vals.shape}")
 
-        # normalise traffic flow
-        scaler = MinMaxScaler(feature_range=(0, 1)).fit(df[target].values.reshape(-1, 1))
-        train_normalised_flow = scaler.transform(df_train[target].values.reshape(-1, 1)).reshape(1, -1)[0]
-        test_normalised_flow = scaler.transform(df_test[target].values.reshape(-1, 1)).reshape(1, -1)[0]
-
-        # normalise heuristics
-        if heuristic_columns:
-            heuristic_scaler = MinMaxScaler(feature_range=(0, 1)).fit(df[heuristic_columns])
-            train_normalised_heuristics = heuristic_scaler.transform(df_train[heuristic_columns])
-            test_normalised_heuristics = heuristic_scaler.transform(df_test[heuristic_columns])
-        else:
-            train_normalised_heuristics = np.zeros((len(df_train), 0))
-            test_normalised_heuristics = np.zeros((len(df_test), 0))
+        scaler = MinMaxScaler(feature_range=(0, 1)).fit(
+            df[target].values.reshape(-1, 1)
+        )
+        train_normalised_flow = scaler.transform(
+            df_train[target].values.reshape(-1, 1)
+        ).reshape(1, -1)[0]
+        test_normalised_flow = scaler.transform(
+            df_test[target].values.reshape(-1, 1)
+        ).reshape(1, -1)[0]
 
         # TODO retain other columns for evaluation
 
         train, test = [], []
-        train_heuristics, test_heuristics = [], []
 
         for i in range(lags, len(train_normalised_flow)):
             train.append(train_normalised_flow[i - lags : i + 1])
-            train_heuristics.append(train_normalised_heuristics[i])
-        
         for i in range(lags, len(test_normalised_flow)):
             test.append(test_normalised_flow[i - lags : i + 1])
-            test_heuristics.append(test_normalised_heuristics[i])
 
         train = np.array(train)
         test = np.array(test)
-        train_heuristics = np.array(train_heuristics)
-        test_heuristics = np.array(test_heuristics)
 
         # shuffle the training data
         np.random.shuffle(train)
@@ -169,14 +159,13 @@ class DataLoader:
             1, -1
         )[0]
 
+        # NOTE: reshaping for LSTM, might be different for SAES or other models
+
         x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
         x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
 
-        x_train_combined = [x_train, train_heuristics]
-        x_test_combined = [x_test, test_heuristics]
-
         # NOTE: not sure if we need y_test_original or scaler or both
-        return ModelInputData(x_train_combined, y_train, x_test_combined, y_test, y_test_original, scaler)
+        return ModelInputData(x_train, y_train, x_test, y_test, y_test_original, scaler)
 
     @staticmethod
     def get_example_day(

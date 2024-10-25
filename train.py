@@ -13,7 +13,7 @@ from test import day_before, most_common_date
 
 def get_model(model_name, units):
     if model_name == "gru":
-        return Model(ModelBuilder.get_gru_with_heuristics(units), "basic_gru_model_with_heuristics")
+        return Model(ModelBuilder.get_gru(units), "basic_gru_model")
     elif model_name == "lstm":
         return Model(ModelBuilder.get_lstm(units), "basic_lstm_model")
     elif model_name == "saes":
@@ -53,7 +53,6 @@ def main(model_name):
             ProcessingSteps.rename_columns(
                 {
                     "LOCATION": "location",
-                    "SITE_NUMBER": "site_number",
                 }
             ),
             # remove bad location
@@ -68,11 +67,9 @@ def main(model_name):
             # get flow per period
             ProcessingSteps.get_flow_per_period(),
             # drop columns
-            ProcessingSteps.filter_columns(["time", "flow", "location", "site_number"]),
+            ProcessingSteps.filter_columns(["time", "flow", "location"]),
         ],
     )
-
-    print(data_loader.peek(data_loader.pre_processed_df))
 
     training_config = TrainingConfig(
         epochs=50,
@@ -86,10 +83,9 @@ def main(model_name):
     main_input_data = data_loader.create_train_test_split_from_df(
         training_config.train_test_proportion,
         training_config.lags,
-        ["site_number"]
     )
 
-    print(main_input_data.x_test[0].shape)
+    print(main_input_data.x_test.shape)
 
     model = get_model(model_name, units)
 
@@ -100,8 +96,10 @@ def main(model_name):
 
     y_true = main_input_data.y_test_original
 
+    print(main_input_data.x_test.shape)
+
     # predict
-    y_preds = model.predict(main_input_data.x_test[0], main_input_data.scaler)
+    y_preds = model.predict(main_input_data.x_test, main_input_data.scaler)
 
     # limit to one day
     y_true, y_preds = DataLoader.get_example_day(y_true, y_preds, training_config.lags)
