@@ -1,4 +1,4 @@
-from keras.layers import Dense, Dropout, Activation, LSTM, GRU, Input
+from keras.layers import Dense, Dropout, SimpleRNN, LSTM, GRU, Input, Embedding, Bidirectional
 from keras.models import Sequential
 from tensorflow.keras import layers, models, regularizers
 
@@ -104,3 +104,35 @@ class ModelBuilder:
         hidden_units = units[1:]
 
         return build_autoencoder(input_dim, hidden_units)[0]
+    
+    @staticmethod
+    def get_rnn(units):
+        """RNN(Recurrent Neural Network)
+        Build RNN Model.
+
+        # Arguments
+            units: List(int), number of input, output and hidden units.
+        # Returns
+            model: Model, nn model.
+        """
+        # check if units contains at least 3 elements
+        if len(units) < 3:
+            raise ValueError("units must contain at least 3 elements")
+
+        model = Sequential()
+
+        # add input layer
+        model.add(SimpleRNN(units[1], activation='relu', return_sequences=True, input_shape=(units[0], 1)))
+
+        # additional RNN layers with dropout
+        for unit in units[2:-1]:
+            model.add(SimpleRNN(unit, activation='relu', return_sequences=True))
+            model.add(Dropout(0.2))
+
+        # add output layer
+        model.add(SimpleRNN(units[-2], activation='relu'))
+
+        model.add(Dense(units[-1]))
+        model.compile(optimizer='adam', loss='mse')
+        
+        return model
