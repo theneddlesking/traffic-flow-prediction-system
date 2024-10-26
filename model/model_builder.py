@@ -1,4 +1,4 @@
-from keras.layers import Dense, Dropout, SimpleRNN, LSTM, GRU, Input, Embedding, Bidirectional
+from keras.layers import Dense, Dropout, SimpleRNN, LSTM, GRU, Input
 from keras.models import Sequential
 from tensorflow.keras import layers, models, regularizers
 
