@@ -21,3 +21,7 @@ model_manager.add_model(lstm)
 saes = Model.load("./saved_models/basic_saes_model.keras")
 
 model_manager.add_model(saes)
+
+rnn = Model.load("./saved_models/basic_rnn_model.keras")
+
+model_manager.add_model(rnn)
