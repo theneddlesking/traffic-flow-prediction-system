@@ -1,44 +1,137 @@
-# keeping this for now to check over when we implement saes later
-def train_saes(models, x_train, y_train, name, config, root, location):
-    """train
-    train the SAEs model.
+import argparse
+from data_loader import DataLoader
+from data_visualiser import DataVisualiser
+from model.model_result import ModelResult
+from processing_step import ProcessingSteps
 
-    # Arguments
-        models: List, list of SAE model.
-        x_train: ndarray(number, lags), Input data for train.
-        y_train: ndarray(number, ), result data for train.
-        name: String, name of model.
-        config: Dict, parameter for train.
-    """
+from model.model_trainer import ModelTrainer
+from model.nn_model import Model
+from model.model_builder import ModelBuilder
+from model.training_config import TrainingConfig
+from test import day_before, most_common_date
 
-    temp = x_train
-    # early = EarlyStopping(monitor='val_loss', patience=30, verbose=0, mode='auto')
 
-    for i in range(len(models) - 1):
-        if i > 0:
-            p = models[i - 1]
-            # see import statements for more info
-            # p.input -> p.inputs
-            # new update of tensorflow doesn't require input=/output=
-            hidden_layer_model = keras.Model(p.inputs, p.get_layer("hidden").output)
-            temp = hidden_layer_model.predict(temp)
+def get_model(model_name, units):
+    if model_name == "gru":
+        return Model(ModelBuilder.get_gru(units), "basic_gru_model")
+    elif model_name == "lstm":
+        return Model(ModelBuilder.get_lstm(units), "basic_lstm_model")
+    elif model_name == "saes":
+        return Model(ModelBuilder.get_saes(units), "basic_saes_model")
+    elif model_name == "rnn":
+        return Model(ModelBuilder.get_rnn(units), "basic_rnn_model")
+    else:
+        raise ValueError(f"Unknown model name: {model_name}")
 
-        m = models[i]
-        m.compile(loss="mse", optimizer="rmsprop", metrics=["mape"])
+def main(model_name):
+    lstm_units = [12, 64, 64, 1]
+    gru_units = [12, 64, 64, 1]
+    saes_units = [12, 400, 400, 400, 1]
+    rnn_units = [12, 64, 64, 1]
 
-        m.fit(
-            temp,
-            y_train,
-            batch_size=config["batch"],
-            epochs=config["epochs"],
-            validation_split=0.05,
-        )
+    units = None
+    if model_name == "gru":
+        units = gru_units
+    elif model_name == "lstm":
+        units = lstm_units
+    elif model_name == "saes":
+        units = saes_units
+    elif model_name == "rnn":
+        units = rnn_units
 
-        models[i] = m
+    CSV = "./data/vic/ScatsOctober2006.csv"
 
-    saes = models[-1]
-    for i in range(len(models) - 1):
-        weights = models[i].get_layer("hidden").get_weights()
-        saes.get_layer("hidden%d" % (i + 1)).set_weights(weights)
+    data_loader = DataLoader(
+        CSV,
+        "flow",
+        [
+            # filter out most common date and day before
+            # filter to most common date or the day before
+            ProcessingSteps.filter_rows(
+                lambda df: df["DATE"].isin(
+                    [most_common_date(df), day_before(most_common_date(df))]
+                ),
+            ),
+            # categorise location
+            ProcessingSteps.categorise_column("LOCATION"),
+            # rename columns
+            ProcessingSteps.rename_columns(
+                {
+                    "LOCATION": "location",
+                }
+            ),
+            # remove bad location
+            ProcessingSteps.filter_rows(
+                lambda df: df["location"] != "AUBURN_RD N of BURWOOD_RD"
+            ),
+            ProcessingSteps.filter_rows(
+                lambda df: df["location"] != "HIGH_ST NE of CHARLES_ST"
+            ),
+            # drop duplicates
+            ProcessingSteps.drop_duplicates(),
+            # get flow per period
+            ProcessingSteps.get_flow_per_period(),
+            # drop columns
+            ProcessingSteps.filter_columns(["time", "flow", "location"]),
+        ],
+    )
 
-    train_model(saes, x_train, y_train, name, config, root, location)
+    training_config = TrainingConfig(
+        epochs=50,
+        batch_size=256,
+        lags=12,
+        train_test_proportion=0.7,
+        validation_split=0.05,
+    )
+
+    # define train data
+    main_input_data = data_loader.create_train_test_split_from_df(
+        training_config.train_test_proportion,
+        training_config.lags,
+    )
+
+    print(main_input_data.x_test.shape)
+
+    model = get_model(model_name, units)
+
+    # train model
+    model, hist_df, main_input_data = ModelTrainer.train(
+        main_input_data, training_config, model
+    )
+
+    y_true = main_input_data.y_test_original
+
+    print(main_input_data.x_test.shape)
+
+    # predict
+    y_preds = model.predict(main_input_data.x_test, main_input_data.scaler)
+
+    # limit to one day
+    y_true, y_preds = DataLoader.get_example_day(y_true, y_preds, training_config.lags)
+
+    # create flow time df
+    preds_df = DataLoader.create_flow_time_df(y_preds)
+
+    # result
+    results = [
+        ModelResult(model, y_preds),
+    ]
+
+    # plot
+    DataVisualiser.plot_results(results, y_true)
+
+    # save plot
+    DataVisualiser.save_plot(f'./results/visualisations/basic_{model_name}_model.png')
+
+    # save model
+    model.save("./saved_models")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train traffic prediction model")
+    parser.add_argument(
+        "--model", choices=["gru", "lstm", "saes", "rnn"], required=True, help="Select which model to run"
+    )
+    args = parser.parse_args()
+
+    main(args.model)

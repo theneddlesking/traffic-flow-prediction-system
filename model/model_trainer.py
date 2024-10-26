@@ -5,6 +5,7 @@ from tensorflow.python.keras.callbacks import History
 from model.model_input_data import ModelInputData
 from model.nn_model import Model
 from model.training_config import TrainingConfig
+import tensorflow as tf
 
 
 class ModelTrainer:
@@ -20,7 +21,7 @@ class ModelTrainer:
         # but overall it will do something like
 
         # configure the model
-        model.keras.compile(loss="mse", optimizer="rmsprop", metrics=["mape"])
+        model.keras.compile(loss="mse", optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), metrics=["mape"])
 
         hist: "History" = model.keras.fit(
             model_input_data.x_train,
