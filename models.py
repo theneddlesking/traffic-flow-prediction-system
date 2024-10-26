@@ -10,10 +10,18 @@ from model.nn_model import Model
 
 model_manager = ModelManager()
 
-basic_model = Model.load("./saved_models/basic_model.keras")
+gru = Model.load("./saved_models/basic_gru_model.keras")
 
-model_manager.add_model(basic_model)
+model_manager.add_model(gru)
 
 lstm = Model.load("./saved_models/basic_lstm_model.keras")
 
 model_manager.add_model(lstm)
+
+saes = Model.load("./saved_models/basic_saes_model.keras")
+
+model_manager.add_model(saes)
+
+rnn = Model.load("./saved_models/basic_rnn_model.keras")
+
+model_manager.add_model(rnn)

@@ -98,13 +98,16 @@ class DBModel:
 
         at_least_one_entry_query = f"SELECT COUNT(*) FROM {self.table_name}"
 
-        exists = bool(self.db.execute_query(table_exists_query)[0][0])
+        exists = bool(self.db.execute_query(table_exists_query))
+
+        if not exists:
+            return False
 
         count = int(self.db.execute_query(at_least_one_entry_query)[0][0])
 
         at_least_one = count > 0
 
-        return exists and at_least_one
+        return at_least_one
 
     def init_if_not_exist(self):
         """Initialise the model if it doesn't already exist."""

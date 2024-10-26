@@ -55,20 +55,21 @@ class Route:
 
         def get_sequence_of_turns(directions: list[RouteDirection]) -> list[str]:
             """Get a sequence of turns from a list of RouteDirections."""
-            no_straights = [
-                direction for direction in directions if not direction.is_straight
+            turns = [
+                direction.get_turn()
+                for direction in directions
+                if not direction.is_straight
             ]
 
-            return [
-                (
-                    direction.get_direction(no_straights[i + 1])
-                    if i + 1 < len(no_straights)
-                    else direction.get_direction(None)
-                )
-                for i, direction in enumerate(no_straights)
-            ]
+            return turns
 
         self_turns = get_sequence_of_turns(self.directions)
         other_turns = get_sequence_of_turns(other.directions)
 
         return self_turns == other_turns
+
+    def __str__(self) -> str:
+        return f"Route: {self.waypoints}, {self.hours_taken} hours"
+
+    def __repr__(self) -> str:
+        return self.__str__()
