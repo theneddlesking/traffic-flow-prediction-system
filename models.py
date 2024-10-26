@@ -21,15 +21,3 @@ model_manager.add_model(lstm)
 saes = Model.load("./saved_models/basic_saes_model.keras")
 
 model_manager.add_model(saes)
-
-rnn = Model.load("./saved_models/basic_rnn_model.keras")
-
-model_manager.add_model(rnn)
-
-bi_lstm = Model.load("./saved_models/basic_bidirectional_lstm_model.keras")
-
-model_manager.add_model(bi_lstm)
-
-bi_gru = Model.load("./saved_models/basic_bidirectional_gru_model.keras")
-
-model_manager.add_model(bi_gru)

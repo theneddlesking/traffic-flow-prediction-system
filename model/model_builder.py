@@ -1,4 +1,4 @@
-from keras.layers import Dense, Dropout, SimpleRNN, LSTM, GRU, Input, Bidirectional
+from keras.layers import Dense, Dropout, SimpleRNN, LSTM, GRU, Input, Embedding, Bidirectional
 from keras.models import Sequential
 from tensorflow.keras import layers, models, regularizers
 
@@ -134,73 +134,5 @@ class ModelBuilder:
 
         model.add(Dense(units[-1]))
         model.compile(optimizer='adam', loss='mse')
-        
-        return model
-
-    @staticmethod
-    def get_bidirectional_lstm(units):
-        """Bidirectional LSTM
-        Build Bidirectional LSTM Model.
-
-        # Arguments
-            units: List(int), number of input, output and hidden units.
-        # Returns
-            model: Model, nn model.
-        """
-
-        # check if units contains at least 3 elements
-        if len(units) < 3:
-            raise ValueError("units must contain at least 3 elements")
-
-        model = Sequential()
-
-        # input layer
-        model.add(Input(shape=(units[0], 1)))
-
-        # add bidirectional LSTM layers
-        for unit in units[1:-2]:
-            model.add(Bidirectional(LSTM(unit, return_sequences=True)))
-            model.add(Dropout(0.2))
-
-        # final bidirectional GRU layer
-        model.add(Bidirectional(LSTM(units[-1], return_sequences=False)))
-        model.add(Dropout(0.2))
-
-        # output layer
-        model.add(Dense(units[-1]))
-        
-        return model
-
-    @staticmethod
-    def get_bidirectional_gru(units):
-        """Bidirectional GRU
-        Build Bidirectional GRU Model.
-
-        # Arguments
-            units: List(int), number of input, output and hidden units.
-        # Returns
-            model: Model, nn model.
-        """
-
-        # check if units contains at least 3 elements
-        if len(units) < 3:
-            raise ValueError("units must contain at least 3 elements")
-
-        model = Sequential()
-
-        # input layer
-        model.add(Input(shape=(units[0], 1)))
-
-        # add bidirectional GRU layers
-        for unit in units[1:-2]:
-            model.add(Bidirectional(GRU(unit, return_sequences=True)))
-            model.add(Dropout(0.2))
-        
-        # final bidirectional GRU layer
-        model.add(Bidirectional(GRU(units[-1], return_sequences=False)))
-        model.add(Dropout(0.2))
-
-        # output layer
-        model.add(Dense(units[-1]))
         
         return model
