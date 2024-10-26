@@ -20,6 +20,10 @@ def get_model(model_name, units):
         return Model(ModelBuilder.get_saes(units), "basic_saes_model")
     elif model_name == "rnn":
         return Model(ModelBuilder.get_rnn(units), "basic_rnn_model")
+    elif model_name == "bi_lstm":
+        return Model(ModelBuilder.get_bidirectional_lstm(units), "basic_bidirectional_lstm_model")
+    elif model_name == "bi_gru":
+        return Model(ModelBuilder.get_bidirectional_gru(units), "basic_bidirectional_gru_model")
     else:
         raise ValueError(f"Unknown model name: {model_name}")
 
@@ -28,6 +32,8 @@ def main(model_name):
     gru_units = [12, 64, 64, 1]
     saes_units = [12, 400, 400, 400, 1]
     rnn_units = [12, 64, 64, 1]
+    bi_lstm_units = [12, 128, 128, 1]
+    bi_gru_units = [12, 128, 128, 1]
 
     units = None
     if model_name == "gru":
@@ -38,6 +44,10 @@ def main(model_name):
         units = saes_units
     elif model_name == "rnn":
         units = rnn_units
+    elif model_name == "bi_lstm":
+        units = bi_lstm_units
+    elif model_name == "bi_gru":
+        units = bi_gru_units
 
     CSV = "./data/vic/ScatsOctober2006.csv"
 
@@ -130,7 +140,7 @@ def main(model_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train traffic prediction model")
     parser.add_argument(
-        "--model", choices=["gru", "lstm", "saes", "rnn"], required=True, help="Select which model to run"
+        "--model", choices=["gru", "lstm", "saes", "rnn", "bi_gru", "bi_lstm"], required=True, help="Select which model to run"
     )
     args = parser.parse_args()
 
