@@ -11,6 +11,7 @@ from routing.road_network import RoadNetwork
 from models import model_manager
 
 from cache import default_cache
+from time_utils import TimeUtils
 
 router = APIRouter()
 
@@ -22,6 +23,10 @@ async def get_route(
 ):
     """Get route"""
     # TODO add some caching logic
+
+    # round time to nearest 15 minutes
+
+    time_of_day = TimeUtils.round_time_to_nearest_quarter(time_of_day)
 
     astar_router = AStarRouter(MFDTimeEstimator(BasicMFD(alpha=0.8, beta=0.3)))
 
