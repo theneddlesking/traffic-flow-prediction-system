@@ -143,3 +143,6 @@ db/backups/
 
 # ignore keras
 *.keras
+
+# ignore evals
+results/evaluations/*

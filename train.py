@@ -8,7 +8,7 @@ from model.model_trainer import ModelTrainer
 from model.nn_model import Model
 from model.model_builder import ModelBuilder
 from model.training_config import TrainingConfig
-from test import day_before, most_common_date
+from sources import day_before, most_common_date
 
 
 def get_model(model_name, units):
@@ -22,6 +22,7 @@ def get_model(model_name, units):
         return Model(ModelBuilder.get_rnn(units), "basic_rnn_model")
     else:
         raise ValueError(f"Unknown model name: {model_name}")
+
 
 def main(model_name):
     lstm_units = [12, 64, 64, 1]
@@ -121,7 +122,7 @@ def main(model_name):
     DataVisualiser.plot_results(results, y_true)
 
     # save plot
-    DataVisualiser.save_plot(f'./results/visualisations/basic_{model_name}_model.png')
+    DataVisualiser.save_plot(f"./results/visualisations/basic_{model_name}_model.png")
 
     # save model
     model.save("./saved_models")
@@ -130,7 +131,10 @@ def main(model_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train traffic prediction model")
     parser.add_argument(
-        "--model", choices=["gru", "lstm", "saes", "rnn"], required=True, help="Select which model to run"
+        "--model",
+        choices=["gru", "lstm", "saes", "rnn"],
+        required=True,
+        help="Select which model to run",
     )
     args = parser.parse_args()
 

@@ -4,7 +4,13 @@ import math
 import pandas as pd
 from coordinate_offset import LAT_OFFSET, LONG_OFFSET
 from data_loader import DataLoader
+from models import model_manager
 from processing_step import ProcessingSteps
+from routing.a_star_router import AStarRouter
+from routing.basic_mfd import BasicMFD
+from routing.mfd_time_estimator import MFDTimeEstimator
+from routing.point import RoutingPoint
+from routing.road_network import RoadNetwork
 from testing.solution import TravelTimeTestCaseSolution
 from testing.test_case import TravelTimeTestCase
 from testing.test_case_input import TravelTimeTestCaseInput
@@ -13,7 +19,6 @@ from testing.test_runner import TestRunner
 
 from cache import default_cache
 
-test_runner = TestRunner()
 
 TRUE_DATA_CSV = "./true_data/cleanTrueData.csv"
 
@@ -97,13 +102,52 @@ def get_location_id_from_lat_long(lat: float, long: float) -> int:
     return None
 
 
-def test_model(model_name: str, limit: int = None) -> None:
+async def test_model(
+    model_name: str,
+    limit: int = None,
+    alpha: int = 0.8,
+    beta: int = 0.3,
+    test_name: str = None,
+) -> None:
     """Test the model."""
+
+    test_runner = TestRunner()
+
+    if test_name is None:
+        test_name = model_name
 
     # iter rows
 
     if limit is None:
         limit = len(df)
+
+    # build network and router
+
+    locations = default_cache.site_controller.get_locations()
+
+    routing_points = [RoutingPoint.from_location(location) for location in locations]
+
+    network = RoadNetwork(routing_points)
+
+    router = AStarRouter(MFDTimeEstimator(BasicMFD(alpha=alpha, beta=beta)))
+
+    model = model_manager.get_model(model_name)
+
+    # for all times
+
+    # filter df to limit
+    new_df = df.head(limit)
+
+    times = new_df["time"].unique()
+
+    time_graphs = {}
+
+    print("Getting time graphs...")
+    for time in times:
+        time_graph = await router.get_time_graph_for_model(network, time, model)
+        time_graphs[time] = time_graph
+
+    print("Time graphs obtained.")
 
     for index, row in df.iterrows():
         if index == limit:
@@ -125,7 +169,13 @@ def test_model(model_name: str, limit: int = None) -> None:
         time_of_day = row["time"]
 
         input_data = TravelTimeTestCaseInput(
-            start_location_id, end_location_id, time_of_day, model_name
+            start_location_id,
+            end_location_id,
+            time_of_day,
+            model_name,
+            network,
+            router,
+            time_graphs[time_of_day],
         )
 
         # travel time test case
@@ -135,14 +185,14 @@ def test_model(model_name: str, limit: int = None) -> None:
 
         test_runner.add_test_case(travel_time_test_case)
 
-    results: list[TravelTimeTestEvaluation] = asyncio.run(test_runner.run())
+    results: list[TravelTimeTestEvaluation] = await test_runner.run()
     # results df
 
     result_dicts = [result.convert_to_dict() for result in results]
 
     results_df = pd.DataFrame(result_dicts)
 
-    results_df.to_csv(f"./results/evaluations/{model_name}_results.csv", index=False)
+    results_df.to_csv(f"./results/evaluations/{test_name}_results.csv", index=False)
 
 
 if __name__ == "__main__":
@@ -168,4 +218,18 @@ if __name__ == "__main__":
 
     limit = args.limit
 
-    test_model(model_name, limit)
+    # normal
+    # asyncio.run(test_model(model_name, limit))
+
+    # try different alpha beta
+
+    alphas = [0.5, 0.6]
+    betas = [0.1, 0.2, 0.3, 0.4]
+
+    # test model
+
+    for alpha in alphas:
+        for beta in betas:
+            test_name = f"{model_name}_a{alpha}_b{beta}"
+            print(f"Testing {test_name}...")
+            asyncio.run(test_model(model_name, limit, alpha, beta, test_name))
