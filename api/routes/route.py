@@ -22,7 +22,6 @@ async def get_route(
     start_location_id: int, end_location_id: int, time_of_day: str, model_name: str
 ):
     """Get route"""
-    # TODO add some caching logic
 
     # round time to nearest 15 minutes
 

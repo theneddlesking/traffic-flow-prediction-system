@@ -51,8 +51,6 @@ class DataLoader:
         """Checks if the target column is in the data frame."""
         return self.target in self.pre_processed_df.columns
 
-    # TODO should these static methods be in a separate class?
-
     @staticmethod
     def clear_directory(directory: str) -> None:
         """Clears the directory of all files."""
@@ -76,15 +74,14 @@ class DataLoader:
         except ImportError:
             return False
 
-    # TODO remove ref to models in comments
     @staticmethod
     def expand_to_3D(x_train: np.ndarray) -> np.ndarray:
-        """Expands the dimensions of the input data to 3D. (For LSTM and GRU models?)"""
+        """Expands the dimensions of the input data to 3D."""
         return x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
 
     @staticmethod
     def collapse_to_2D(x_train: np.ndarray) -> np.ndarray:
-        """Collapses the dimensions of the input data to 2D. (For SAES models?)"""
+        """Collapses the dimensions of the input data to 2D."""
         return x_train.reshape(x_train.shape[0], x_train.shape[1])
 
     def create_train_test_split_from_df(
@@ -135,8 +132,6 @@ class DataLoader:
         test_normalised_flow = scaler.transform(
             df_test[target].values.reshape(-1, 1)
         ).reshape(1, -1)[0]
-
-        # TODO retain other columns for evaluation
 
         train, test = [], []
 
@@ -260,7 +255,5 @@ class DataLoader:
         )
 
         example_flow_set = np.array(example_flow_set)
-
-        # TODO consider heuristics later
 
         return example_flow_set, scaler

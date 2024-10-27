@@ -13,7 +13,6 @@ class FlowPredictorModel(DBModel):
         self, db: SQLiteDB, model: Model, real_time_sources: list[RealTimeSource]
     ):
         # ! Assumes that model_name is passed in safely, NOT USER FACING
-        # TODO is there a better way to handle this?
         super().__init__(db, f"{model.name}_predictions")
 
         self.real_time_sources = real_time_sources
@@ -58,8 +57,6 @@ class FlowPredictorModel(DBModel):
         """Get predictions for a real time source."""
 
         preds = []
-
-        # TODO utilise batching to speed up predictions
 
         for i in range(0, len(real_time_data.day_of_flow_data)):
 

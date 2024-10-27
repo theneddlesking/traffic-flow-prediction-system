@@ -56,7 +56,6 @@ class RouteDirection:
 
             return f"{straight_str} for {self.get_distance_str()} to arrive at your destination at {destination}"
         else:
-            # TODO figure out how to get the actual turn direction
 
             turn_str = (
                 f"Turn from {self.point_a.street_name} to {self.point_b.street_name}"
