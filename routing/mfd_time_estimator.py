@@ -17,7 +17,6 @@ class MFDTimeEstimator(TimeEstimator):
     ) -> int:
         """Estimate the time taken to travel between two locations."""
 
-        # TODO later add estimators for capacity, free flow time etc.
         free_flow_speed = 60
 
         # if we have the same site number this means that we are at the same intersection

@@ -119,12 +119,9 @@ class AStarRouter(Router):
                 start, end, time_graph, network, model
             )
 
-            # TODO check route instead of exact match, check if they are substantially different
             # check this by comparing the SCAT site numbers, eg. don't just run around the intersection
 
             # already found the same route or no more routes to find
-            print("checking next best route")
-            print(next_best_route)
             if next_best_route is None or next_best_route in best_routes:
                 break
 
@@ -132,7 +129,6 @@ class AStarRouter(Router):
 
         # get the actual time taken, not the penalised time
 
-        # TODO this could be simplified somehow, but it should be pretty fast
         # because there won't be many points in the phony network
 
         actual_routes: list[Route] = []

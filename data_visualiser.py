@@ -8,7 +8,6 @@ from model.model_result import ModelResult
 class DataVisualiser:
     """Class to visualise dataframes as plots."""
 
-    # TODO refactor this out a better way
     @staticmethod
     def plot_results(
         results: list[ModelResult],

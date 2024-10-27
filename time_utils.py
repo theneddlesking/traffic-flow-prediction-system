@@ -1,6 +1,5 @@
 class TimeUtils:
 
-    # TODO not sure where to put this
     # Utils in general are kinda of an anti-pattern
 
     @staticmethod
