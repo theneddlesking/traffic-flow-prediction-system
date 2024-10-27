@@ -31,7 +31,7 @@ function Map() {
     showIntersections : false,
     showLocations : true,
     showRoutes : true,
-    skipLoadingScreen : true
+    skipLoadingScreen : false
   }
 
   const {
